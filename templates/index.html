@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelMate AI - Your Smart Cybernetic Travel Companion</title>
+    <meta name="description" content="Next-gen AI travel planning platform with smart itineraries, real-time budget telemetry, offline maps, and cyberpunk aesthetics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=5.2">
+</head>
+<body>
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="{% url 'index' %}" class="logo">
+            TravelMate <span>AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'index' %}" class="active">Home</a></li>
+            <li><a href="{% url 'explore' %}">Explore</a></li>
+            <li><a href="{% url 'planner' %}">AI Planner</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if request.user.is_authenticated %}
+            <div class="nav-user-profile">
+                <span>{{ request.user.username }}</span>
+                <button type="button" class="btn-signout" onclick="signOutUser()">Sign Out</button>
+            </div>
+            {% else %}
+            <a href="{% url 'auth' %}" class="btn-login">
+                <span>Access Portal</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            {% endif %}
+            <button class="hamburger" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 2. HERO SECTION WITH ANTI-GRAVITY FLOATING BADGES -->
+    <header class="hero">
+        <div class="hero-content">
+            <!-- Levitating Anti-Gravity Badges -->
+            <div class="floating-badge badge-top-left">
+                <span class="badge-icon">⚡</span>
+                <span>99.4% AI Precision Match</span>
+            </div>
+            <div class="floating-badge badge-top-right">
+                <span class="badge-icon">✈️</span>
+                <span>140k+ Cyber Itineraries</span>
+            </div>
+            <div class="floating-badge badge-bottom-left">
+                <span class="badge-icon">⭐</span>
+                <span>4.95/5 Traveler Rating</span>
+            </div>
+
+            <div class="hero-pill" id="homeGreetingPill">⚡ Next-Gen Autonomous Travel Engine</div>
+            <h1>Plan Your Next Trip With <span>TravelMate AI</span></h1>
+            <p>Smart itineraries, real-time dynamic budgeting, and autonomous local navigation tailored precisely to your style.</p>
+
+            <!-- Dual CTAs -->
+            <div class="hero-cta-group">
+                <a href="{% url 'planner' %}" class="btn-glow-cyan">
+                    <span>Synthesize Trip With AI</span>
+                    <span>✨</span>
+                </a>
+                <a href="{% url 'explore' %}" class="btn-secondary-glass">
+                    <span>Explore 190+ Destinations</span>
+                    <span>🌐</span>
+                </a>
+            </div>
+
+            <!-- Instant Search Bar -->
+            <form action="{% url 'explore' %}" method="GET" class="search-box">
+                <input type="text" name="q" placeholder="Where do you want to wander next?" required>
+                <button type="submit">
+                    <span>Search Now</span>
+                    <span>→</span>
+                </button>
+            </form>
+
+            <div class="hero-quick-tags">
+                <span>Famous Indian Cities:</span>
+                <a href="{% url 'explore' %}?q=Goa">Goa</a>
+                <a href="{% url 'explore' %}?q=Manali">Manali</a>
+                <a href="{% url 'explore' %}?q=Jaipur">Jaipur</a>
+                <a href="{% url 'explore' %}?q=Udaipur">Udaipur</a>
+                <a href="{% url 'explore' %}?q=Varanasi">Varanasi</a>
+                <a href="{% url 'explore' %}?q=Kerala">Kerala</a>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- 4. HOW IT WORKS (3-STEP AUTONOMOUS FLOW) -->
+    <section class="how-it-works-section">
+        <div class="section-header" style="text-align: center;">
+            <span class="section-tag">Autonomous Workflow</span>
+            <h2>How TravelMate AI Operates</h2>
+            <p class="subtitle">Experience human wanderlust powered by three simple algorithmic phases.</p>
+        </div>
+
+        <div class="steps-grid">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 01</span>
+                    <span class="step-icon">🎯</span>
+                </div>
+                <h3>Set Coordinates & Archetype</h3>
+                <p>Input your target location, duration, and budget threshold. Choose whether you want an intense adventure, romantic retreat, or digital nomad pacing.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 02</span>
+                    <span class="step-icon">⚡</span>
+                </div>
+                <h3>Neural Route & Budget Synthesis</h3>
+                <p>Our algorithms calculate crowd density forecasts, weather indices, and local hidden gems to sequence your schedule seamlessly.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 03</span>
+                    <span class="step-icon">🛰️</span>
+                </div>
+                <h3>Navigate On or Off Grid</h3>
+                <p>Take your trip live with vector 3D maps and full offline caching. Adjust plans dynamically with your AI companion anytime, anywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. POPULAR DESTINATIONS SECTION -->
+    <section class="destination" id="destinationsSection">
+        <div class="section-header">
+            <span class="section-tag">Featured Indian Coordinates</span>
+            <h2>Top AI-Curated Destinations</h2>
+            <p class="subtitle">Handpicked famous Indian destinations optimized with neural crowd predictions and dynamic Rupee (₹ INR) budget intelligence.</p>
+        </div>
+
+        <div class="card-grid">
+            {% for dest in destinations %}
+            <div class="card" data-category="{{ dest.category|lower }}" id="card-{{ dest.id }}" onclick="window.location.href='{% url 'planner' %}?dest={{ dest.title|urlencode }}'" title="Click anywhere to synthesize trip for {{ dest.title }}" style="cursor: pointer;">
+                <div class="card-img-wrapper">
+                    <img src="{{ dest.image_url }}" alt="{{ dest.title }}" loading="lazy">
+                    <span class="card-badge-category">{{ dest.category }}</span>
+                    <span class="card-badge-rating"><span>★</span> {{ dest.rating }}</span>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-header">
+                        <h3>{{ dest.title }}</h3>
+                        <div class="card-price">₹{{ dest.price }} <small>/trip</small></div>
+                    </div>
+                    <p>{{ dest.description }}</p>
+                    <div class="card-footer">
+                        <div class="card-features">
+                            <span>📍 {{ dest.category|title }}</span>
+                            <span>⭐ {{ dest.rating }}</span>
+                            <span>💬 {{ dest.reviews.count }} reviews</span>
+                        </div>
+                        <a href="{% url 'planner' %}?dest={{ dest.title|urlencode }}" class="btn-card-action" onclick="event.stopPropagation();">Synthesize Plan →</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; padding: 3rem 1rem; text-align: center; color: var(--text-secondary);">
+                <p style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #ffffff;">No destinations currently available.</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Add new destinations from the <a href="/admin/" style="color: var(--accent-cyan); text-decoration: underline;">Admin Panel</a> to display them here.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- View All 190+ Destinations CTA -->
+        <div style="text-align: center; margin-top: 3.5rem;">
+            <a href="{% url 'explore' %}" class="btn-glow-cyan" style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; font-size: 1.05rem; font-weight: 700; text-decoration: none; border-radius: var(--radius-pill); box-shadow: 0 10px 30px rgba(0, 242, 254, 0.25);">
+                <span>Explore All {{ total_count|default:"190+" }} Indian Destinations</span>
+                <span style="font-size: 1.2rem;">→</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 7. CALL TO ACTION BANNER -->
+    <section style="padding: 0 8% 6rem 8%;">
+        <div class="cta-banner">
+            <div class="cta-banner-content">
+                <span class="section-tag">Ready For Departure?</span>
+                <h3>Ascend Your Travel Game with TravelMate AI</h3>
+                <p>Customize your budget, duration, and style in under 60 seconds with our neural trip builder.</p>
+            </div>
+            <div>
+                <a href="{% url 'planner' %}" class="btn-glow-cyan">
+                    <span>Launch AI Planner</span>
+                    <span>✨</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="logo">TravelMate <span>AI</span></div>
+                <p>Next-generation autonomous travel companion engineered with dark glassmorphism aesthetics and AI intelligence.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'explore' %}">Explore Destinations</a></li>
+                    <li><a href="{% url 'planner' %}">AI Trip Planner</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Capabilities</h4>
+                <ul>
+                    <li><a href="{% url 'planner' %}">Dynamic Budgeting</a></li>
+                    <li><a href="{% url 'planner' %}">24/7 AI Concierge</a></li>
+                    <li><a href="{% url 'explore' %}">Offline Vector Maps</a></li>
+                    <li><a href="{% url 'explore' %}">Hidden Gems Scanner</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Account</h4>
+                <ul>
+                    <li><a href="{% url 'auth' %}">Login / Register</a></li>
+                    <li><a href="{% url 'auth' %}">Saved Itineraries</a></li>
+                    <li><a href="{% url 'auth' %}">Traveler Preferences</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 TravelMate AI Inc. All rights reserved. Built for discerning global nomads.</p>
+            <div class="footer-social-links">
+                <a href="#" aria-label="Twitter">𝕏</a>
+                <a href="#" aria-label="GitHub">GitHub</a>
+                <a href="#" aria-label="Discord">Discord</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GLOBAL AI CHATBOT POPUP MODAL (Blurry Background) -->
+    {% include 'includes/ai_chatbot_modal.html' %}
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

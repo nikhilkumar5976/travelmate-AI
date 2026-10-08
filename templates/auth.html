@@ -1,0 +1,181 @@
+{% load static socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveler Portal - TravelMate AI</title>
+    <meta name="description" content="Access your TravelMate AI account to manage smart itineraries, budget telemetry, and offline trip archives.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="{% url 'landing' %}" class="logo">
+            TravelMate <span>AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'landing' %}">Home</a></li>
+            <li><a href="{% url 'explore' %}">Explore</a></li>
+            <li><a href="{% url 'planner' %}">AI Planner</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if request.user.is_authenticated %}
+            <div class="nav-user-profile">
+                <span>{{ request.user.username }}</span>
+                <button type="button" class="btn-signout" onclick="window.location.href='{% url 'account_logout' %}'">Sign Out</button>
+            </div>
+            {% else %}
+            <a href="{% url 'auth' %}" class="btn-login active">
+                <span>Access Portal</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            {% endif %}
+            <button class="hamburger" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 2. AUTHENTICATION CENTERING WRAPPER WITH ANTI-GRAVITY BACKGROUND ELEMENTS -->
+    <main class="auth-wrapper">
+        <!-- Floating Anti-Gravity Background Orbital Rings -->
+        <div class="orbital-ring orbital-ring-1"></div>
+        <div class="orbital-ring orbital-ring-2"></div>
+
+        <!-- Glassmorphism Auth Card -->
+        <div class="auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="logo" style="justify-content: center; margin-bottom: 0.8rem;">
+                    TravelMate <span>AI</span>
+                </div>
+                <h2 id="authHeaderTitle">Welcome Back</h2>
+                <p id="authHeaderSubtitle">Access your AI itineraries and saved travel preferences</p>
+            </div>
+
+            <!-- PROMINENT GOOGLE AUTHENTICATION SYSTEM (DJANGO-ALLAUTH) -->
+            <form action="{% provider_login_url 'google' process='login' %}" method="post" style="width: 100%;">
+                {% csrf_token %}
+                <button type="submit" class="btn-google-signin" id="btnGoogleLogin" style="width: 100%;">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.98 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </button>
+            </form>
+
+            <!-- Social Divider -->
+            <div class="auth-divider">
+                <span>or use email cipher</span>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab-btn active" data-tab="login">Login</button>
+                <button type="button" class="auth-tab-btn" data-tab="register">Create Account</button>
+            </div>
+
+            <!-- 1. LOGIN FORM -->
+            <form id="loginForm" class="auth-form active">
+                <div class="auth-input-group">
+                    <label for="loginEmail">Traveler Email</label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-icon">✉️</span>
+                        <input type="email" id="loginEmail" placeholder="nomad@travelmate.ai" required>
+                    </div>
+                </div>
+
+                <div class="auth-input-group">
+                    <label for="loginPassword">Cipher Password</label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-icon">🔒</span>
+                        <input type="password" id="loginPassword" placeholder="••••••••••••" required>
+                    </div>
+                </div>
+
+                <div class="form-options-row">
+                    <label class="remember-me">
+                        <input type="checkbox" checked style="accent-color: #38bdf8;">
+                        <span>Keep cipher active</span>
+                    </label>
+                    <a href="#" class="forgot-link" onclick="showToast('Password recovery link dispatched to your inbox.')">Forgot cipher?</a>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">
+                    Authenticate Session →
+                </button>
+            </form>
+
+            <!-- 2. REGISTER FORM -->
+            <form id="registerForm" class="auth-form">
+                <div class="auth-input-group">
+                    <label for="regName">Full Legal / Explorer Name</label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-icon">👤</span>
+                        <input type="text" id="regName" placeholder="e.g. Aryan Sharma">
+                    </div>
+                </div>
+
+                <div class="auth-input-group">
+                    <label for="regEmail">Nomad Email Address</label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-icon">✉️</span>
+                        <input type="email" id="regEmail" placeholder="nomad@travelmate.ai" required>
+                    </div>
+                </div>
+
+                <div class="auth-input-group">
+                    <label for="regPassword">Create Access Key</label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-icon">🔒</span>
+                        <input type="password" id="regPassword" placeholder="Minimum 8 characters" required minlength="8">
+                    </div>
+                </div>
+
+                <div class="form-options-row">
+                    <label class="remember-me">
+                        <input type="checkbox" required checked style="accent-color: #38bdf8;">
+                        <span>Agree to AI Travel Protocols</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">
+                    Initialize Travel Profile →
+                </button>
+            </form>
+
+            <!-- Additional Social Logins -->
+            <div class="social-auth-grid" style="margin-top: 1.2rem;">
+                <button type="button" class="social-btn" onclick="showToast('Apple biometric authentication connected.')">
+                    <span>🍎</span>
+                    <span>Apple ID</span>
+                </button>
+                <button type="button" class="social-btn" onclick="showToast('GitHub developer identity verified.')">
+                    <span>🐙</span>
+                    <span>GitHub</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+
+
+    <!-- 3. FOOTER -->
+    <footer>
+        <div class="footer-bottom" style="border-top: none; padding-top: 0; justify-content: center;">
+            <p>&copy; 2026 TravelMate AI. Zero-knowledge encrypted traveler cloud.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!-- =========================================
+     GLOBAL AI CHATBOT POPUP MODAL & LAUNCHER
+     (Accessible over any page with blurry backdrop)
+========================================= -->
+
+<!-- Floating AI Assistant Launcher Button -->
+<button type="button" class="floating-chat-launcher" onclick="openAIChatbotModal()" title="Ask TravelMate AI Chatbot" id="floatingChatLauncher" aria-label="Open TravelMate AI Assistant">
+    <span class="chat-launcher-icon">💬</span>
+    <span class="chat-launcher-pulse"></span>
+    <span class="chat-launcher-tooltip">Ask AI Assistant</span>
+</button>
+
+<!-- AI Chatbot Popup Modal Window Overlay (Blurry Backdrop) -->
+<div class="ai-chatbot-modal-overlay" id="aiChatbotModalOverlay" onclick="handleChatbotOverlayClick(event)">
+    <div class="ai-chatbot-modal-card chatbot-card" id="aiChatbotModalCard" role="dialog" aria-modal="true" aria-labelledby="chatbotHeaderTitle">
+        <!-- Close Button -->
+        <button type="button" class="chatbot-modal-close-btn" onclick="closeAIChatbotModal()" aria-label="Close AI Assistant">✕</button>
+
+        <!-- Chat Header -->
+        <div class="chatbot-card-header">
+            <div class="chatbot-assistant-info">
+                <div class="chatbot-avatar">
+                    <span>🤖</span>
+                    <span class="online-indicator"></span>
+                </div>
+                <div>
+                    <h4 id="chatbotHeaderTitle">TravelMate Neural Concierge</h4>
+                    <p><span class="pulsing-dot"></span> Ready to answer questions &amp; assist your journey</p>
+                </div>
+            </div>
+            <div class="chatbot-header-actions" style="margin-right: 40px;">
+                <button type="button" class="btn-chat-reset" id="resetChatBtn" title="Restart conversation">🔄 Reset Chat</button>
+            </div>
+        </div>
+
+        <!-- Suggested FAQ Quick Chips -->
+        <div class="chatbot-chips-container">
+            <span class="chips-label">Quick Inquiries:</span>
+            <div class="chatbot-quick-chips">
+                <button type="button" class="chat-chip" data-question="How does TravelMate AI generate personalized itineraries?">✨ How does AI plan trips?</button>
+                <button type="button" class="chat-chip" data-question="Does TravelMate AI function without cellular internet?">📶 Works offline?</button>
+                <button type="button" class="chat-chip" data-question="How are travel budgets estimated in Rupees?">💰 Budget in ₹ INR?</button>
+                <button type="button" class="chat-chip" data-question="Can I export, print, or save my generated itineraries?">📄 Export &amp; PDF print?</button>
+                <button type="button" class="chat-chip" data-question="What are the best trending Indian destinations right now?">🇮🇳 Famous Indian cities?</button>
+                <button type="button" class="chat-chip" data-question="Is TravelMate AI free to use?">💎 Free to use?</button>
+            </div>
+        </div>
+
+        <!-- Message History Display -->
+        <div class="chatbot-messages" id="chatbotMessages">
+            <!-- Default Bot Welcome -->
+            <div class="chat-message bot-message">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-bubble">
+                    <div class="msg-header">TravelMate AI • Concierge</div>
+                    <p>👋 Hello! I'm your <strong>TravelMate Neural Concierge</strong>. Ask me anything about planning trips across India, offline vector maps, Rupee (₹) budget tracking, top destinations, or how the platform operates!</p>
+                    <p class="msg-hint">💡 <em>Click any quick chip above or type your question below.</em></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator (Hidden by default) -->
+        <div class="chat-typing-indicator" id="chatTypingIndicator" style="display: none;">
+            <div class="typing-bubble">
+                <span>AI Assistant is typing</span>
+                <span class="dot-bounce"></span>
+                <span class="dot-bounce"></span>
+                <span class="dot-bounce"></span>
+            </div>
+        </div>
+
+        <!-- Input Bar -->
+        <form class="chatbot-input-bar" id="chatbotForm">
+            <div class="chat-input-wrapper">
+                <input type="text" id="chatbotInput" placeholder="Ask a question or request an Indian travel tip..." autocomplete="off">
+            </div>
+            <button type="submit" class="btn-chat-send" id="chatSendBtn">
+                <span>Send</span>
+                <span>⚡</span>
+            </button>
+        </form>
+    </div>
+</div>

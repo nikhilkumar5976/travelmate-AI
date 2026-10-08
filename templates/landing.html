@@ -1,0 +1,263 @@
+{% load static socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelMate AI - The Autonomous Travel Engine</title>
+    <meta name="description" content="Next-gen AI travel platform. Real-time itineraries, autonomous budget telemetry, and offline vector maps.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="landing-page-mode">
+    <!-- 1. LANDING GATEWAY NAVBAR -->
+    <nav class="navbar">
+        <a href="{% url 'landing' %}" class="logo">
+            TravelMate <span>AI</span>
+        </a>
+        <div class="nav-actions" style="margin-left: auto;">
+            {% if request.user.is_authenticated %}
+            <div class="nav-user-profile" style="margin-right: 0.6rem;">
+                <span>{{ request.user.username }}</span>
+            </div>
+            <a href="{% url 'home' %}" class="btn-login" style="padding: 0.55rem 1.4rem;">
+                <span>Enter App</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            <button type="button" class="btn-signout" onclick="signOutUser()" style="margin-left: 0.5rem;">Sign Out</button>
+            {% else %}
+            <a href="{% url 'auth' %}" class="btn-secondary-glass" style="padding: 0.55rem 1.4rem; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center;">
+                Sign In
+            </a>
+            <a href="{% url 'auth' %}" class="btn-login" style="padding: 0.55rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span>Launch Portal</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- 2. CINEMATIC HERO SECTION (PRE-LOGIN GATEWAY) -->
+    <header class="hero">
+        <div class="hero-content">
+            <!-- Floating Anti-Gravity Badges: clicking opens login page -->
+            <div class="floating-badge badge-top-left" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer; pointer-events: auto;">
+                <span class="badge-icon">⚡</span>
+                <span>99.4% AI Match • Click to Join</span>
+            </div>
+            <div class="floating-badge badge-top-right" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer; pointer-events: auto;">
+                <span class="badge-icon">✈️</span>
+                <span>140k+ Nomads • Sign in</span>
+            </div>
+            <div class="floating-badge badge-bottom-left" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer; pointer-events: auto;">
+                <span class="badge-icon">⭐</span>
+                <span>4.95/5 Rating • Unlock</span>
+            </div>
+
+            <div class="hero-pill" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+                <span>✦ India Edition • Real-Time Rupee (₹ INR) Telemetry ✦</span>
+            </div>
+
+            <h1 style="font-size: clamp(2.8rem, 6vw, 4.5rem);">
+                Explore India's Iconic Cities With <span>TravelMate AI</span>
+            </h1>
+            <p>Synthesize real-time AI itineraries with dynamic Indian Rupee (₹ INR) budget telemetry, crowd forecasting, and offline vector navigation across India's most celebrated destinations.</p>
+
+            <!-- Dual Action Triggers: Navigate directly to login page on click -->
+            <div class="hero-cta-group">
+                <a href="{% url 'auth' %}" class="btn-glow-cyan" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>Synthesize Indian Trip (₹)</span>
+                    <span>✨</span>
+                </a>
+                <a href="#destinationsSection" class="btn-secondary-glass" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <span>Explore Indian Cities</span>
+                    <span>🇮🇳</span>
+                </a>
+            </div>
+
+            <!-- Search box triggers login page directly -->
+            <div class="search-box" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+                <input type="text" placeholder="Search Indian city (e.g. Goa, Manali, Jaipur, Varanasi) • Plan in ₹ INR" readonly style="cursor: pointer;">
+                <button type="button" onclick="window.location.href='{% url 'auth' %}'">
+                    <span>Enter Portal</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+            <div class="hero-quick-tags" style="margin-top: 1.5rem;">
+                <span>Famous Indian Cities:</span>
+                <a href="#destinationsSection">Goa</a>
+                <a href="#destinationsSection">Manali</a>
+                <a href="#destinationsSection">Jaipur</a>
+                <a href="#destinationsSection">Udaipur</a>
+                <a href="#destinationsSection">Varanasi</a>
+                <a href="#destinationsSection">Kerala</a>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- 4. HOW IT WORKS 3-STEP AUTONOMOUS FLOW -->
+    <section class="how-it-works-section">
+        <div class="section-header" style="text-align: center;">
+            <span class="section-tag">Autonomous Workflow</span>
+            <h2>How TravelMate AI Operates</h2>
+            <p class="subtitle">Experience human wanderlust powered by three simple algorithmic phases.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 01</span>
+                    <span class="step-icon">🎯</span>
+                </div>
+                <h3>Set Coordinates & Archetype</h3>
+                <p>Input your target location, duration, and budget threshold. Choose whether you want an intense adventure, romantic retreat, or digital nomad pacing.</p>
+            </div>
+
+            <div class="step-card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 02</span>
+                    <span class="step-icon">⚡</span>
+                </div>
+                <h3>Neural Route & Budget Synthesis</h3>
+                <p>Our algorithms calculate crowd density forecasts, weather indices, and local hidden gems to sequence your schedule seamlessly.</p>
+            </div>
+
+            <div class="step-card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+                <div class="step-header">
+                    <span class="step-pill">PHASE 03</span>
+                    <span class="step-icon">🛰️</span>
+                </div>
+                <h3>Navigate On or Off Grid</h3>
+                <p>Take your trip live with vector 3D maps and full offline caching. Adjust plans dynamically with your AI companion anytime, anywhere.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. POPULAR DESTINATIONS SHOWCASE -->
+    <section class="destination" id="destinationsSection">
+        <div class="section-header">
+            <span class="section-tag">India's Crown Coordinates</span>
+            <h2>Famous Indian Destinations</h2>
+            <p class="subtitle">Click any destination card below to authenticate and plan your journey in Indian Rupees (₹ INR).</p>
+        </div>
+
+        <div class="card-grid">
+            <div class="card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;" data-category="beaches">
+                <div class="card-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=700&q=80" alt="Goa Coastline" loading="lazy">
+                    <span class="card-badge-category">Beaches</span>
+                    <span class="card-badge-rating"><span>★</span> 4.90</span>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-header">
+                        <h3>Goa Coastline, India</h3>
+                        <div class="card-price">₹16,800 <small>/trip</small></div>
+                    </div>
+                    <p>Sunlit palm shores, vibrant coastal shacks, water sports, and historic Portuguese architecture.</p>
+                    <div class="card-footer">
+                        <div class="card-features">
+                            <span>🌊 Arabian Sea</span>
+                            <span>⏳ 5 Days</span>
+                        </div>
+                        <button type="button" class="btn-card-action" onclick="window.location.href='{% url 'auth' %}'">Plan Trip in ₹ (Sign In) →</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;" data-category="mountains">
+                <div class="card-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=700&q=80" alt="Manali Snow Valleys" loading="lazy">
+                    <span class="card-badge-category">Mountains</span>
+                    <span class="card-badge-rating"><span>★</span> 4.95</span>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-header">
+                        <h3>Manali &amp; Rohtang Pass</h3>
+                        <div class="card-price">₹18,500 <small>/trip</small></div>
+                    </div>
+                    <p>Rohtang Pass snow panoramas, Solang Valley paragliding, pine cedar forests, and riverside cafes.</p>
+                    <div class="card-footer">
+                        <div class="card-features">
+                            <span>🏔️ High Alpine</span>
+                            <span>⏳ 6 Days</span>
+                        </div>
+                        <button type="button" class="btn-card-action" onclick="window.location.href='{% url 'auth' %}'">Plan Trip in ₹ (Sign In) →</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;" data-category="heritage">
+                <div class="card-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1599661046289-e31897846e41?w=700&q=80" alt="Jaipur Hawa Mahal" loading="lazy">
+                    <span class="card-badge-category">Heritage</span>
+                    <span class="card-badge-rating"><span>★</span> 4.95</span>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-header">
+                        <h3>Jaipur, Rajasthan</h3>
+                        <div class="card-price">₹14,500 <small>/trip</small></div>
+                    </div>
+                    <p>Hawa Mahal, magnificent Amer Fort, vibrant Johari Bazaar gems, and royal Rajasthani palaces.</p>
+                    <div class="card-footer">
+                        <div class="card-features">
+                            <span>🏰 Royal Palaces</span>
+                            <span>⏳ 4 Days</span>
+                        </div>
+                        <button type="button" class="btn-card-action" onclick="window.location.href='{% url 'auth' %}'">Plan Trip in ₹ (Sign In) →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. BOTTOM CALL TO ACTION -->
+    <section style="padding: 0 8% 6rem 8%;">
+        <div class="cta-banner" onclick="window.location.href='{% url 'auth' %}'" style="cursor: pointer;">
+            <div class="cta-banner-content">
+                <span class="section-tag">One-Tap Authentication</span>
+                <h3>Ready to Ascend Your Travel Game?</h3>
+                <p>Sign in with Google to access the full TravelMate AI app, save customized itineraries, and unlock live budget telemetry.</p>
+            </div>
+            <a href="{% url 'auth' %}" class="btn-glow-cyan" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <span>Sign In With Google</span>
+                <span>✨</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 7. FOOTER -->
+    <footer>
+        <div class="footer-bottom" style="border-top: none; padding-top: 0; justify-content: center;">
+            <p>&copy; 2026 TravelMate AI. Zero-knowledge encrypted traveler cloud.</p>
+        </div>
+    </footer>
+
+    <!-- GLOBAL AI CHATBOT POPUP MODAL (Blurry Background) -->
+    {% include 'includes/ai_chatbot_modal.html' %}
+
+    <script src="{% static 'script.js' %}"></script>
+    <script>
+        // Directly navigate to full login page on clicking any feature trigger
+        document.addEventListener('DOMContentLoaded', () => {
+            const triggers = document.querySelectorAll('.open-portal-trigger');
+            triggers.forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = "{% url 'auth' %}";
+                });
+            });
+
+            // Automatically navigate to login page if redirected because login verification is required
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('login_required') === '1') {
+                window.location.href = "{% url 'auth' %}";
+            }
+        });
+    </script>    
+</body>
+</html>

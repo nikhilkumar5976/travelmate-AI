@@ -1,0 +1,623 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore 190+ Destinations - TravelMate AI</title>
+    <meta name="description" content="Explore 190+ intelligent travel recommendations and famous Indian destinations across heritage, Himalayan peaks, coastlines, and adventures with Rupee (₹ INR) budgeting.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        /* Explore Directory Enhancements */
+        .explore-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 2.2rem 0;
+            padding: 0.9rem 1.4rem;
+            background: rgba(19, 25, 44, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+        }
+
+        .explore-counter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .explore-counter-badge strong {
+            color: var(--accent-cyan);
+            font-weight: 800;
+        }
+
+        .explore-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-cyan);
+            animation: pulseDot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: var(--text-secondary);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-clear-btn:hover {
+            background: var(--accent-pink);
+            color: #ffffff;
+        }
+
+        .search-clear-btn.visible {
+            display: flex;
+        }
+
+        /* Load More & Pagination Bar */
+        .load-more-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 3.5rem 0 1.5rem 0;
+            gap: 0.8rem;
+        }
+
+        .btn-load-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.95rem 2.4rem;
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border: 1px solid rgba(0, 242, 254, 0.45);
+            border-radius: var(--radius-pill);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 242, 254, 0.15);
+        }
+
+        .btn-load-more:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.3) 0%, rgba(139, 92, 246, 0.35) 100%);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 242, 254, 0.35);
+        }
+
+        .load-more-hint {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* Empty Search State */
+        .empty-search-state {
+            grid-column: 1 / -1;
+            padding: 4.5rem 2rem;
+            text-align: center;
+            background: rgba(19, 25, 44, 0.55);
+            backdrop-filter: blur(14px);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .empty-search-icon {
+            font-size: 3.2rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.3));
+        }
+
+        .empty-search-state h3 {
+            font-size: 1.4rem;
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-search-state p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 520px;
+            margin: 0 auto 1.5rem auto;
+            line-height: 1.6;
+        }
+
+        .btn-reset-search {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.6rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-pill);
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-reset-search:hover {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--accent-cyan);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="{% url 'index' %}" class="logo">
+            TravelMate <span>AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'explore' %}" class="active">Explore</a></li>
+            <li><a href="{% url 'planner' %}">AI Planner</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if request.user.is_authenticated %}
+            <div class="nav-user-profile">
+                <span>{{ request.user.username }}</span>
+                <button type="button" class="btn-signout" onclick="signOutUser()">Sign Out</button>
+            </div>
+            {% else %}
+            <a href="{% url 'auth' %}" class="btn-login">
+                <span>Access Portal</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            {% endif %}
+            <button class="hamburger" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 2. PAGE HEADER -->
+    <header class="page-hero">
+        <div class="hero-content">
+            <div class="hero-pill">✦ All-India Intelligence Directory • {{ total_count }} Verified Coordinates ✦</div>
+            <h1>Explore <span>190+ Destinations</span> Across India</h1>
+            <p>Discover iconic Indian cities categorized by royal heritage, Himalayan snow peaks, tropical coastlines, and wilderness adventures with real-time Rupee (₹ INR) telemetry.</p>
+        </div>
+    </header>
+
+    <!-- 3. INTERACTIVE FILTER & SEARCH BAR -->
+    <main style="padding: 0 8% 6rem 8%;">
+        <div class="filter-bar-container">
+            <!-- Filter Pills -->
+            <div class="filter-pills">
+                <button type="button" class="filter-btn active" data-filter="all">All Destinations ({{ total_count }})</button>
+                <button type="button" class="filter-btn" data-filter="beaches">🏖️ Beaches</button>
+                <button type="button" class="filter-btn" data-filter="mountains">🏔️ Mountains</button>
+                <button type="button" class="filter-btn" data-filter="heritage">🏛️ Heritage</button>
+                <button type="button" class="filter-btn" data-filter="adventure">⚡ Adventure</button>
+            </div>
+
+            <!-- Search and Sort Controls -->
+            <div class="filter-controls">
+                <div class="filter-search search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="exploreSearchInput" placeholder="Search 190 destinations by name (e.g. Agra, Ooty, Hampi, Goa, Leh)..." autocomplete="off">
+                    <button type="button" class="search-clear-btn" id="searchClearBtn" title="Clear search" aria-label="Clear search">✕</button>
+                </div>
+                <select id="exploreSortSelect" class="sort-select" aria-label="Sort destinations">
+                    <option value="featured">Sort: Featured</option>
+                    <option value="rating">Highest Rated ★</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dynamic Telemetry Counter Bar -->
+        <div class="explore-status-bar">
+            <div class="explore-counter-badge" id="exploreCounter">
+                <span class="explore-pulse-dot"></span>
+                <span>Showing <strong id="visibleCount">{{ initial_count }}</strong> of <strong>{{ total_count }}</strong> destinations across India</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                💡 Tip: Type any destination name above to search through all 190 spots instantly!
+            </div>
+        </div>
+
+        <!-- 4. DESTINATION DIRECTORY GRID -->
+        <div class="card-grid explore-card-grid" id="exploreGrid">
+            <!-- Server-rendered initial batch of 12 destinations -->
+            {% for dest in initial_destinations %}
+            <div class="card explore-destination-card" 
+                 data-id="{{ dest.id }}"
+                 data-title="{{ dest.title|lower }}"
+                 data-category="{{ dest.category_lower }}"
+                 data-price="{{ dest.price }}"
+                 data-rating="{{ dest.rating }}"
+                 onclick="window.location.href='{{ dest.planner_url }}'"
+                 style="cursor: pointer;"
+                 title="Click to synthesize trip for {{ dest.title }}">
+                <div class="card-img-wrapper">
+                    <img src="{{ dest.image_url }}" alt="{{ dest.title }}" loading="lazy">
+                    <span class="card-badge-category">{{ dest.category }}</span>
+                    <span class="card-badge-rating"><span>★</span> {{ dest.rating }}</span>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-header">
+                        <h3>{{ dest.title }}</h3>
+                        <div class="card-price">₹{{ dest.formatted_price }} <small>/trip</small></div>
+                    </div>
+                    <p>{{ dest.description }}</p>
+                    <div class="card-footer">
+                        <div class="card-features">
+                            <span>📍 {{ dest.category }}</span>
+                            <span>⭐ {{ dest.rating }}</span>
+                        </div>
+                        <a href="{{ dest.planner_url }}" class="btn-card-action" onclick="event.stopPropagation();">Synthesize Plan →</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 5. PROGRESSIVE LOAD MORE BAR -->
+        <div class="load-more-wrapper" id="loadMoreContainer">
+            <button type="button" class="btn-load-more" id="btnLoadMore" onclick="loadMoreDestinations()">
+                <span>Load More Destinations (+12)</span>
+                <span>↓</span>
+            </button>
+            <div class="load-more-hint" id="loadMoreHint">
+                Showing <span id="loadMoreShown">{{ initial_count }}</span> of {{ total_count }} coordinates • or search by name above
+            </div>
+        </div>
+    </main>
+
+    <!-- 6. FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="logo">TravelMate <span>AI</span></div>
+                <p>Next-generation autonomous travel companion engineered with dark glassmorphism aesthetics and AI intelligence.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'explore' %}">Explore 190+ Destinations</a></li>
+                    <li><a href="{% url 'planner' %}">AI Trip Planner</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="{% url 'explore' %}?cat=beaches">Coastal Escapes (Beaches)</a></li>
+                    <li><a href="{% url 'explore' %}?cat=mountains">Himalayan Ridges (Mountains)</a></li>
+                    <li><a href="{% url 'explore' %}?cat=heritage">Cultural Heritage</a></li>
+                    <li><a href="{% url 'explore' %}?cat=adventure">Adrenaline Expeditions</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Account</h4>
+                <ul>
+                    <li><a href="{% url 'auth' %}">Login / Register</a></li>
+                    <li><a href="{% url 'explore' %}">Saved Coordinates</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 TravelMate AI Inc. All rights reserved. Built for discerning global nomads across 190+ Indian destinations.</p>
+            <div class="footer-social-links">
+                <a href="#" aria-label="Twitter">𝕏</a>
+                <a href="#" aria-label="GitHub">GitHub</a>
+                <a href="#" aria-label="Discord">Discord</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GLOBAL AI CHATBOT POPUP MODAL (Blurry Background) -->
+    {% include 'includes/ai_chatbot_modal.html' %}
+
+    <!-- 7. COMPLETE 190 DESTINATIONS EMBEDDED DATA -->
+    <script id="allDestinationsData" type="application/json">
+        {{ destinations_json|safe }}
+    </script>
+
+    <!-- 8. EXPLORE DIRECTORY CONTROLLER SCRIPT -->
+    <script>
+        (function() {
+            // Parse full dataset of 190 destinations
+            let allDestinations = [];
+            try {
+                const dataEl = document.getElementById('allDestinationsData');
+                if (dataEl) {
+                    allDestinations = JSON.parse(dataEl.textContent);
+                }
+            } catch (err) {
+                console.error("Failed to parse allDestinationsData:", err);
+            }
+
+            const totalDestinationsCount = allDestinations.length || 190;
+            const INITIAL_PAGE_SIZE = 12;
+            const STEP_PAGE_SIZE = 12;
+
+            let currentCategory = 'all';
+            let currentSearchTerm = '';
+            let currentSort = 'featured';
+            let currentlyDisplayedLimit = INITIAL_PAGE_SIZE;
+
+            const gridEl = document.getElementById('exploreGrid');
+            const searchInput = document.getElementById('exploreSearchInput');
+            const searchClearBtn = document.getElementById('searchClearBtn');
+            const sortSelect = document.getElementById('exploreSortSelect');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const counterEl = document.getElementById('exploreCounter');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            const btnLoadMore = document.getElementById('btnLoadMore');
+            const loadMoreShown = document.getElementById('loadMoreShown');
+
+            // Render a single destination card HTML
+            function createCardHTML(dest) {
+                return `
+                    <div class="card explore-destination-card" 
+                         data-id="${dest.id}"
+                         data-title="${dest.title.toLowerCase()}"
+                         data-category="${dest.category_lower}"
+                         data-price="${dest.price}"
+                         data-rating="${dest.rating}"
+                         onclick="window.location.href='${dest.planner_url}'"
+                         style="cursor: pointer;"
+                         title="Click to synthesize trip for ${dest.title}">
+                        <div class="card-img-wrapper">
+                            <img src="${dest.image_url}" alt="${dest.title}" loading="lazy">
+                            <span class="card-badge-category">${dest.category}</span>
+                            <span class="card-badge-rating"><span>★</span> ${dest.rating}</span>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-info-header">
+                                <h3>${dest.title}</h3>
+                                <div class="card-price">₹${dest.formatted_price} <small>/trip</small></div>
+                            </div>
+                            <p>${dest.description}</p>
+                            <div class="card-footer">
+                                <div class="card-features">
+                                    <span>📍 ${dest.category}</span>
+                                    <span>⭐ ${dest.rating}</span>
+                                </div>
+                                <a href="${dest.planner_url}" class="btn-card-action" onclick="event.stopPropagation();">Synthesize Plan →</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Filter & Sort core algorithm
+            function getFilteredDestinations() {
+                let filtered = allDestinations.slice();
+
+                // 1. Category Filter
+                if (currentCategory !== 'all') {
+                    filtered = filtered.filter(d => d.category_lower === currentCategory);
+                }
+
+                // 2. Search Term Filter across all 190 items
+                if (currentSearchTerm.trim().length > 0) {
+                    const term = currentSearchTerm.trim().toLowerCase();
+                    filtered = filtered.filter(d => {
+                        return d.title.toLowerCase().includes(term) ||
+                               d.category.toLowerCase().includes(term) ||
+                               d.description.toLowerCase().includes(term);
+                    });
+                }
+
+                // 3. Sort
+                if (currentSort === 'rating') {
+                    filtered.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+                } else if (currentSort === 'price-low') {
+                    filtered.sort((a, b) => a.price - b.price);
+                } else if (currentSort === 'price-high') {
+                    filtered.sort((a, b) => b.price - a.price);
+                }
+
+                return filtered;
+            }
+
+            // Render matching destinations
+            function renderDestinations() {
+                if (!gridEl) return;
+
+                const filtered = getFilteredDestinations();
+                const isSearching = currentSearchTerm.trim().length > 0;
+
+                // When user is searching by name: show all matching search results!
+                // When not searching: show up to currentlyDisplayedLimit (e.g. 12, 24, etc.)
+                const itemsToRender = isSearching ? filtered : filtered.slice(0, currentlyDisplayedLimit);
+
+                if (itemsToRender.length === 0) {
+                    // Empty state
+                    gridEl.innerHTML = `
+                        <div class="empty-search-state">
+                            <div class="empty-search-icon">🗺️</div>
+                            <h3>No destinations found for "${currentSearchTerm}"</h3>
+                            <p>We searched across all ${totalDestinationsCount} Indian coordinates. Try checking for another famous city, state, or landmark like <em>Jaipur, Manali, Goa, Agra, Ooty, Hampi, Kerala,</em> or <em>Ladakh</em>.</p>
+                            <button type="button" class="btn-reset-search" id="btnResetSearch">
+                                <span>Reset Search & Show Featured</span>
+                                <span>↺</span>
+                            </button>
+                        </div>
+                    `;
+                    const resetBtn = document.getElementById('btnResetSearch');
+                    if (resetBtn) {
+                        resetBtn.addEventListener('click', resetSearch);
+                    }
+                    if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+                    updateCounter(0, filtered.length, isSearching);
+                    return;
+                }
+
+                // Render cards
+                gridEl.innerHTML = itemsToRender.map(createCardHTML).join('');
+
+                // Update Telemetry Counter
+                updateCounter(itemsToRender.length, filtered.length, isSearching);
+
+                // Update Load More Button visibility
+                if (loadMoreContainer) {
+                    if (isSearching || itemsToRender.length >= filtered.length) {
+                        loadMoreContainer.style.display = 'none';
+                    } else {
+                        loadMoreContainer.style.display = 'flex';
+                        if (btnLoadMore) {
+                            const remaining = filtered.length - itemsToRender.length;
+                            const nextBatch = Math.min(remaining, STEP_PAGE_SIZE);
+                            btnLoadMore.innerHTML = `<span>Load More Destinations (+${nextBatch})</span><span>↓</span>`;
+                        }
+                        if (loadMoreShown) {
+                            loadMoreShown.textContent = itemsToRender.length;
+                        }
+                    }
+                }
+            }
+
+            function updateCounter(renderedCount, totalFiltered, isSearching) {
+                if (!counterEl) return;
+
+                if (isSearching) {
+                    counterEl.innerHTML = `
+                        <span class="explore-pulse-dot" style="background: var(--accent-fuchsia); box-shadow: 0 0 10px var(--accent-fuchsia);"></span>
+                        <span>Found <strong>${totalFiltered}</strong> matching destination${totalFiltered === 1 ? '' : 's'} for <em>"${currentSearchTerm}"</em> (searched all ${totalDestinationsCount} destinations)</span>
+                    `;
+                } else if (currentCategory !== 'all') {
+                    counterEl.innerHTML = `
+                        <span class="explore-pulse-dot"></span>
+                        <span>Showing <strong>${renderedCount}</strong> of <strong>${totalFiltered}</strong> ${currentCategory.toUpperCase()} destinations across India</span>
+                    `;
+                } else {
+                    counterEl.innerHTML = `
+                        <span class="explore-pulse-dot"></span>
+                        <span>Showing <strong id="visibleCount">${renderedCount}</strong> of <strong>${totalDestinationsCount}</strong> destinations across India</span>
+                    `;
+                }
+            }
+
+            function resetSearch() {
+                currentSearchTerm = '';
+                if (searchInput) searchInput.value = '';
+                if (searchClearBtn) searchClearBtn.classList.remove('visible');
+                currentlyDisplayedLimit = INITIAL_PAGE_SIZE;
+                renderDestinations();
+            }
+
+            window.loadMoreDestinations = function() {
+                currentlyDisplayedLimit += STEP_PAGE_SIZE;
+                renderDestinations();
+            };
+
+            // Event Listeners: Search Input
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    currentSearchTerm = e.target.value;
+                    if (searchClearBtn) {
+                        if (currentSearchTerm.length > 0) {
+                            searchClearBtn.classList.add('visible');
+                        } else {
+                            searchClearBtn.classList.remove('visible');
+                        }
+                    }
+                    // Reset limit when searching
+                    currentlyDisplayedLimit = INITIAL_PAGE_SIZE;
+                    renderDestinations();
+                });
+            }
+
+            if (searchClearBtn) {
+                searchClearBtn.addEventListener('click', resetSearch);
+            }
+
+            // Event Listeners: Category Filter Pills
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.getAttribute('data-filter') || 'all';
+                    currentlyDisplayedLimit = INITIAL_PAGE_SIZE;
+                    renderDestinations();
+                });
+            });
+
+            // Event Listeners: Sort Select
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function(e) {
+                    currentSort = e.target.value;
+                    renderDestinations();
+                });
+            }
+
+            // URL Query Parameter Initializer (e.g. /explore/?q=Agra or /explore/?cat=beaches)
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryParam = urlParams.get('q');
+            const catParam = urlParams.get('cat');
+
+            if (catParam) {
+                const targetBtn = document.querySelector(`.filter-btn[data-filter="${catParam.toLowerCase()}"]`);
+                if (targetBtn) {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    targetBtn.classList.add('active');
+                    currentCategory = catParam.toLowerCase();
+                }
+            }
+
+            if (queryParam) {
+                currentSearchTerm = queryParam;
+                if (searchInput) {
+                    searchInput.value = queryParam;
+                    if (searchClearBtn) searchClearBtn.classList.add('visible');
+                }
+            }
+
+            // Initial render if any params were provided, or to ensure click handlers
+            if (queryParam || catParam) {
+                renderDestinations();
+            }
+        })();
+    </script>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

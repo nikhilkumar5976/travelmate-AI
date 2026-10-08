@@ -1,0 +1,1458 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trip Planner - TravelMate AI</title>
+    <meta name="description" content="Synthesize personalized day-by-day travel itineraries with our interactive neural AI travel engine.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=16.0">
+    <style>
+        /* =========================================
+           PLANNER REVIEWS & TRIP INSIGHTS SECTION
+        ========================================= */
+        .planner-reviews-section {
+            padding: 5rem clamp(1.2rem, 3.5vw, 4.5rem) 6rem;
+            background: radial-gradient(circle at 50% 10%, rgba(0, 242, 254, 0.08), transparent 50%), var(--bg-primary, #0a0d18);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .planner-reviews-header {
+            text-align: center;
+            max-width: 780px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .planner-reviews-header h2 {
+            font-size: clamp(2rem, 3.8vw, 2.7rem);
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.7rem;
+        }
+
+        .planner-reviews-header .subtitle {
+            font-size: 1.02rem;
+            color: var(--text-secondary, #94a3b8);
+            line-height: 1.6;
+        }
+
+        /* Filter Pills */
+        .planner-dest-filter-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 2.8rem;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted, #64748b);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.4rem;
+        }
+
+        .planner-filter-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary, #94a3b8);
+            padding: 0.45rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .planner-filter-pill:hover {
+            border-color: var(--accent-cyan, #00f2fe);
+            color: #ffffff;
+            background: rgba(0, 242, 254, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .planner-filter-pill.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.22), rgba(139, 92, 246, 0.25));
+            border-color: var(--accent-cyan, #00f2fe);
+            color: #ffffff;
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.3);
+        }
+
+        .planner-filter-pill .pill-count {
+            font-size: 0.72rem;
+            opacity: 0.75;
+        }
+
+        /* Grid */
+        .planner-reviews-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: clamp(1.8rem, 2.5vw, 2.8rem);
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            align-items: start;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 1024px) {
+            .planner-reviews-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Left Column: Reviews List */
+        .planner-reviews-column {
+            background: rgba(19, 25, 44, 0.65);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .planner-column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.4rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .planner-column-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .reviews-count-badge {
+            background: rgba(0, 242, 254, 0.12);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            color: var(--accent-cyan, #00f2fe);
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.2rem 0.65rem;
+            border-radius: 9999px;
+        }
+
+        .planner-reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 580px;
+            overflow-y: auto;
+            padding-right: 0.4rem;
+        }
+
+        .planner-reviews-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .planner-reviews-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+        .planner-reviews-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 242, 254, 0.3);
+            border-radius: 4px;
+        }
+
+        .planner-single-review {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 1.1rem 1.25rem;
+            transition: all 0.25s ease;
+        }
+
+        .planner-single-review:hover {
+            background: rgba(255, 255, 255, 0.055);
+            border-color: rgba(0, 242, 254, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .p-review-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.6rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .p-reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .p-reviewer-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f2fe, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #0a0d18;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.35);
+            flex-shrink: 0;
+        }
+
+        .p-reviewer-name-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .p-reviewer-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .verified-tag {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+            font-size: 0.64rem;
+            font-weight: 700;
+            padding: 0.08rem 0.45rem;
+            border-radius: 9999px;
+            letter-spacing: 0.02em;
+        }
+
+        .p-review-time {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            display: block;
+            margin-top: 1px;
+        }
+
+        .p-dest-badge {
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.28);
+            color: var(--accent-cyan, #00f2fe);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+        }
+
+        .p-review-stars {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #f59e0b;
+            letter-spacing: 2px;
+            margin-bottom: 0.6rem;
+            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.55));
+        }
+
+        .p-rating-num {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            letter-spacing: normal;
+            font-weight: 600;
+        }
+
+        .p-review-comment {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            line-height: 1.55;
+            font-style: italic;
+            margin: 0;
+            padding-left: 0.6rem;
+            border-left: 3px solid rgba(0, 242, 254, 0.4);
+        }
+
+        .planner-reviews-empty {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+        }
+
+        .planner-reviews-empty .empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .planner-reviews-empty h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.3rem 0;
+        }
+
+        .planner-reviews-empty p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Right Column: Review Submission Card */
+        .planner-review-form-card {
+            background: linear-gradient(180deg, rgba(20, 27, 45, 0.88) 0%, rgba(13, 18, 34, 0.95) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 242, 254, 0.28);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 242, 254, 0.12);
+            position: sticky;
+            top: 90px;
+        }
+
+        .p-form-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.6rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .p-form-icon {
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.5));
+        }
+
+        .p-form-header h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .p-form-header p {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .p-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .p-field-label {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .p-select-wrapper {
+            position: relative;
+        }
+
+        .p-select {
+            width: 100%;
+            background: rgba(10, 14, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .p-select:focus {
+            border-color: var(--accent-cyan, #00f2fe);
+            box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+        }
+
+        .p-select option {
+            background: #0d1222;
+            color: #ffffff;
+        }
+
+        .input-with-icon {
+            display: flex;
+            align-items: center;
+            background: rgba(10, 14, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .input-with-icon:focus-within {
+            border-color: var(--accent-cyan, #00f2fe);
+            box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+        }
+
+        .input-prefix {
+            padding: 0.65rem 0.6rem 0.65rem 0.9rem;
+            color: var(--accent-cyan, #00f2fe);
+            font-weight: 700;
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .dest-review-input {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            color: #ffffff !important;
+            font-size: 0.85rem !important;
+            font-family: inherit !important;
+            width: 100% !important;
+            padding: 0.65rem 0.9rem 0.65rem 0 !important;
+        }
+
+        /* YouTube-Style Commenter Identity Header */
+        .yt-commenter-card {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(0, 242, 254, 0.22);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.15rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            transition: all 0.25s ease;
+        }
+
+        .yt-commenter-card:hover {
+            border-color: rgba(0, 242, 254, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.12);
+        }
+
+        .yt-commenter-avatar {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #00f2fe 0%, #3b82f6 100%);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .yt-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .yt-avatar-initial {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #020617;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        .yt-commenter-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .yt-commenter-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .yt-commenter-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .yt-verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.32);
+            border-radius: 9999px;
+            padding: 1px 7px;
+        }
+
+        .yt-commenter-info {
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .yt-commenter-name {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: #f8fafc;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .yt-commenter-email {
+            font-size: 0.78rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .p-star-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dest-rating-feedback {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 0.15rem 0.55rem;
+            border-radius: 9999px;
+        }
+
+        .planner-star-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(10, 14, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 0.45rem 0.85rem;
+            width: fit-content;
+        }
+
+        .p-star {
+            background: none !important;
+            border: none !important;
+            outline: none !important;
+            color: rgba(255, 255, 255, 0.2) !important;
+            font-size: 1.45rem !important;
+            cursor: pointer !important;
+            padding: 0 3px !important;
+            line-height: 1 !important;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .p-star.active {
+            color: #f59e0b !important;
+            filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.75)) !important;
+            transform: scale(1.1) !important;
+        }
+
+        .p-star:hover {
+            transform: scale(1.35) !important;
+            color: #fbbf24 !important;
+        }
+
+        .p-char-count {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .dest-review-textarea {
+            background: rgba(10, 14, 26, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 10px !important;
+            padding: 0.75rem 0.9rem !important;
+            font-size: 0.85rem !important;
+            font-family: inherit !important;
+            line-height: 1.55 !important;
+            resize: vertical !important;
+            min-height: 80px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .dest-review-textarea:focus {
+            border-color: var(--accent-cyan, #00f2fe) !important;
+            outline: none !important;
+            box-shadow: 0 0 14px rgba(0, 242, 254, 0.25) !important;
+        }
+
+        .dest-review-textarea::placeholder,
+        .dest-review-input::placeholder {
+            color: #64748b !important;
+            font-size: 0.82rem !important;
+        }
+
+        /* Glass Destination Selector Styles */
+        .glass-select-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .glass-select {
+            width: 100%;
+            padding: 0.85rem 2.6rem 0.85rem 1.1rem !important;
+            background: rgba(11, 15, 25, 0.85) !important;
+            border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.1)) !important;
+            border-radius: var(--radius-md, 14px) !important;
+            color: #ffffff !important;
+            font-size: 0.95rem !important;
+            font-family: inherit !important;
+            outline: none !important;
+            cursor: pointer !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .glass-select:focus,
+        .glass-select:hover {
+            border-color: var(--accent-cyan, #00f2fe) !important;
+            background: rgba(11, 15, 25, 0.95) !important;
+            box-shadow: 0 0 18px rgba(0, 242, 254, 0.28) !important;
+        }
+
+        .glass-select option {
+            background: #0d1222 !important;
+            color: #ffffff !important;
+            padding: 10px 12px !important;
+        }
+
+        .glass-select option:checked {
+            background: #1e293b !important;
+            color: #00f2fe !important;
+            font-weight: 700 !important;
+        }
+
+        .select-dropdown-chevron {
+            position: absolute;
+            right: 1.2rem;
+            color: var(--accent-cyan, #00f2fe);
+            font-size: 0.75rem;
+            pointer-events: none;
+            transition: transform 0.25s ease;
+        }
+
+        .glass-select-wrapper:focus-within .select-dropdown-chevron {
+            transform: rotate(180deg);
+    </style>
+</head>
+<body>
+    <!-- 1. NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="{% url 'index' %}" class="logo">
+            TravelMate <span>AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'explore' %}">Explore</a></li>
+            <li><a href="{% url 'planner' %}" class="active">AI Planner</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if request.user.is_authenticated %}
+            <div class="nav-user-profile">
+                <span>{{ request.user.username }}</span>
+                <button type="button" class="btn-signout" onclick="signOutUser()">Sign Out</button>
+            </div>
+            {% else %}
+            <a href="{% url 'auth' %}" class="btn-login">
+                <span>Access Portal</span>
+                <span style="font-size: 1.1rem;">→</span>
+            </a>
+            {% endif %}
+            <button class="hamburger" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 2. HEADER -->
+    <header class="page-hero">
+        <div class="hero-content">
+            <div class="hero-pill">Neural Itinerary Generator</div>
+            <h1>Synthesize Your <span>Custom Journey</span></h1>
+            <p>Define your destination parameters, budget threshold, and pacing to generate a hyper-tailored schedule.</p>
+        </div>
+    </header>
+
+    <!-- 3. PLANNER INTERACTION SECTION -->
+    <main class="planner-section">
+        <div class="planner-grid initial-view" id="plannerGrid">
+            <!-- Left Column: Input Form Card (Customized Box) -->
+            <div class="planner-form-card" id="plannerFormCard">
+                <div style="margin-bottom: 1.8rem;">
+                    <span class="section-tag">Trip Configuration</span>
+                    <h3 style="font-size: 1.45rem; font-weight: 800; color: #ffffff;">Parameters</h3>
+                </div>
+
+                <form id="aiPlannerForm">
+                    <!-- Destination Selector -->
+                    <div class="form-group">
+                        <label for="plannerDestination">Target Destination / Region</label>
+                        <div class="glass-select-wrapper">
+                            <select id="plannerDestination" class="glass-input glass-select" required onchange="onPlannerDestinationChange(this)" aria-label="Select target destination">
+                                <option value="" disabled>
+                                    Select a Destination (190 Available Across India)...
+                                </option>
+                                {% for dest in destinations %}
+                                <option value="{{ dest.title }}" 
+                                        data-id="{{ dest.id }}"
+                                        data-category="{{ dest.category }}"
+                                        {% if selected_dest and selected_dest.id == dest.id or target_dest == dest.title or target_dest in dest.title %}selected{% elif not selected_dest and not target_dest and 'Jaipur' in dest.title %}selected{% endif %}>
+                                    📍 {{ dest.title }} ({{ dest.category }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <span class="select-dropdown-chevron">▼</span>
+                        </div>
+                    </div>
+
+                    <!-- Duration Slider -->
+                    <div class="form-group">
+                        <div class="range-header" style="margin-bottom: 0.6rem;">
+                            <label for="plannerDuration" style="margin-bottom: 0;">Journey Duration</label>
+                            <strong id="durationValueDisplay">5 Days</strong>
+                        </div>
+                        <div class="range-slider-wrapper">
+                            <input type="range" id="plannerDuration" class="custom-range" min="1" max="14" value="5">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 0.2rem;">
+                                <span>1 Day (Micro)</span>
+                                <span>7 Days (Week)</span>
+                                <span>14 Days (Extended)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Travel Style Selection -->
+                    <div class="form-group">
+                        <label>Travel Archetype / Style</label>
+                        <div class="selectable-grid">
+                            <div class="select-card select-style-card" data-style="Adventure">
+                                <span class="select-card-icon">⚡</span>
+                                <div class="select-card-info">
+                                    <h4>Adventure</h4>
+                                    <p>Hikes & Thrills</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-style-card" data-style="Romantic">
+                                <span class="select-card-icon">💖</span>
+                                <div class="select-card-info">
+                                    <h4>Romantic</h4>
+                                    <p>Couples & Scenery</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-style-card active" data-style="Cultural">
+                                <span class="select-card-icon">🏛️</span>
+                                <div class="select-card-info">
+                                    <h4>Cultural</h4>
+                                    <p>Heritage & Food</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-style-card" data-style="Relaxed">
+                                <span class="select-card-icon">🌴</span>
+                                <div class="select-card-info">
+                                    <h4>Relaxed</h4>
+                                    <p>Wellness & Leisure</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Tier -->
+                    <div class="form-group">
+                        <label>Budget Tier &amp; Allocation</label>
+                        <div class="selectable-grid">
+                            <div class="select-card select-budget-card" data-budget="Budget">
+                                <span class="select-card-icon">🪙</span>
+                                <div class="select-card-info">
+                                    <h4>Nomad / Budget</h4>
+                                    <p>Hostels &amp; Street food</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-budget-card active" data-budget="Moderate">
+                                <span class="select-card-icon">💳</span>
+                                <div class="select-card-info">
+                                    <h4>Comfort / Moderate</h4>
+                                    <p>Boutique stays &amp; cabs</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-budget-card" data-budget="Luxury">
+                                <span class="select-card-icon">💎</span>
+                                <div class="select-card-info">
+                                    <h4>High Luxury</h4>
+                                    <p>5-star resorts &amp; guides</p>
+                                </div>
+                            </div>
+                            <div class="select-card select-budget-card" data-budget="Ultra-Bespoke">
+                                <span class="select-card-icon">👑</span>
+                                <div class="select-card-info">
+                                    <h4>Ultra Bespoke</h4>
+                                    <p>Chartered &amp; Private</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="btnGeneratePlan" class="btn-glow-cyan" style="width: 100%; justify-content: center; margin-top: 1.5rem;">
+                        <span id="btnGeneratePlanText">Synthesize AI Trip Plan</span>
+                        <span id="btnGeneratePlanIcon">✨</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Itinerary Output Display (Revealed when trip plan is customized) -->
+            <div class="planner-output-card" id="itineraryOutput" style="display: none;">
+                <!-- Real-Time "Little Reload" Overlay -->
+                <div class="planner-reload-overlay" id="plannerReloadOverlay" onclick="hidePlannerReloadOverlay()" title="Click to dismiss">
+                    <div class="reload-spinner-glow">
+                        <div class="reload-spinner-core"></div>
+                        <span class="reload-spinner-icon">⚡</span>
+                    </div>
+                    <div class="reload-text-group">
+                        <h4 id="reloadTitleDisplay">Updating Itinerary...</h4>
+                        <p id="reloadSubtextDisplay">Recalibrating route &amp; daily schedule</p>
+                    </div>
+                </div>
+
+                <div class="itinerary-container" id="itineraryContainer" style="animation: heroEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <!-- Header -->
+                    <div class="itinerary-header">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                                <span class="section-tag" style="margin-bottom: 0;">TravelMate AI Itinerary</span>
+                                <span class="itinerary-badge" style="background: rgba(0, 242, 254, 0.12); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.35);" id="itineraryStatusBadge">
+                                    ⚡ AI Tailored Route
+                                </span>
+                            </div>
+                            <h3 id="itineraryTitleDisplay">{% if selected_dest %}{{ selected_dest.title }}{% elif target_dest %}{{ target_dest }}{% else %}Jaipur, Rajasthan{% endif %} (5 Days)</h3>
+                            <p style="color: #94a3b8; font-size: 0.88rem; margin-top: 0.2rem;" id="itinerarySubtitleDisplay">
+                                Archetype: <strong style="color: #38bdf8;" id="itineraryStyleDisplay">Cultural &amp; Heritage</strong> • 
+                                Budget: <strong style="color: #818cf8;" id="itineraryBudgetDisplay">Comfort / Moderate</strong> (~₹37,500)
+                            </p>
+                        </div>
+                        <span class="itinerary-badge" id="itineraryEngineBadge">⚡ TravelMate AI Ready</span>
+                    </div>
+
+                    <!-- Day Timeline with 5-Day Dummy Data for Jaipur -->
+                    <div class="day-timeline custom-scrollbar" id="dayTimelineContainer">
+                        <!-- Day 01 -->
+                        <div class="day-block">
+                            <div class="day-title-row">
+                                <span class="day-pill">DAY 01</span>
+                                <span class="day-theme">Royal Bastions &amp; Heritage Flavors</span>
+                            </div>
+                            <ul class="activity-list">
+                                <li class="activity-item">
+                                    <span class="time-tag">08:30 AM</span>
+                                    <span class="activity-desc">Artisanal breakfast with spicy Pyaaz Kachori and saffron masala chai at the iconic Rawat Mishthan Bhandar.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">10:30 AM</span>
+                                    <span class="activity-desc">Ascend to Amber Fort, marveling at the mirror mosaics of Sheesh Mahal and grand Rajput ramparts.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">02:00 PM</span>
+                                    <span class="activity-desc">Royal heritage Rajasthani Thali lunch at 1135 AD with panoramic desert fort vistas.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">06:30 PM</span>
+                                    <span class="activity-desc">Sunset golden hour photography at Jal Mahal water palace and evening gem shopping at Johari Bazaar.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 02 -->
+                        <div class="day-block">
+                            <div class="day-title-row">
+                                <span class="day-pill">DAY 02</span>
+                                <span class="day-theme">Pink City Iconography &amp; Astronomy</span>
+                            </div>
+                            <ul class="activity-list">
+                                <li class="activity-item">
+                                    <span class="time-tag">09:00 AM</span>
+                                    <span class="activity-desc">Iconic honeycomb facade photography at Hawa Mahal followed by morning espresso at Wind View Cafe.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">11:30 AM</span>
+                                    <span class="activity-desc">Guided exploration of City Palace royal museum &amp; UNESCO-listed Jantar Mantar astronomical observatory.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">02:30 PM</span>
+                                    <span class="activity-desc">Traditional Rajasthani feast at Handi Restaurant on MI Road trying authentic Laal Maas and Bajra roti.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">06:00 PM</span>
+                                    <span class="activity-desc">Golden sunset vista overlooking the entire Pink City skyline from the mountain ramparts of Nahargarh Fort.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 03 -->
+                        <div class="day-block">
+                            <div class="day-title-row">
+                                <span class="day-pill">DAY 03</span>
+                                <span class="day-theme">Stepwells, Cannons &amp; Artisan Villages</span>
+                            </div>
+                            <ul class="activity-list">
+                                <li class="activity-item">
+                                    <span class="time-tag">08:30 AM</span>
+                                    <span class="activity-desc">Early morning photography at the symmetrical geometric stepwell of Panna Meena Ka Kund.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">11:00 AM</span>
+                                    <span class="activity-desc">Jaigarh Fort visit to marvel at Jaivana, the world's largest cannon on wheels, and secret underground passages.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">02:00 PM</span>
+                                    <span class="activity-desc">Traditional wooden block-printing workshop &amp; blue pottery shopping in Sanganer craft village.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">07:00 PM</span>
+                                    <span class="activity-desc">Immersive cultural folk dance, puppet show, and royal village dining feast under desert tents at Chokhi Dhani.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 04 -->
+                        <div class="day-block">
+                            <div class="day-title-row">
+                                <span class="day-pill">DAY 04</span>
+                                <span class="day-theme">Palace Gardens &amp; High-Tea Culture</span>
+                            </div>
+                            <ul class="activity-list">
+                                <li class="activity-item">
+                                    <span class="time-tag">09:00 AM</span>
+                                    <span class="activity-desc">Peaceful stroll through lush terraced fountains and painted pavilions of Sisodia Rani Ka Bagh.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">11:30 AM</span>
+                                    <span class="activity-desc">Explore Albert Hall Museum, admiring centuries-old Rajput armor, miniatures, and Persian carpets.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">02:30 PM</span>
+                                    <span class="activity-desc">Modern fusion brunch and chai degustation at Tapri Central overlooking Central Park.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">06:30 PM</span>
+                                    <span class="activity-desc">Evening sound-and-light spectacle at Amber Fort under the starry Aravalli night sky.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 05 -->
+                        <div class="day-block">
+                            <div class="day-title-row">
+                                <span class="day-pill">DAY 05</span>
+                                <span class="day-theme">Spiritual Sanctuaries &amp; Sunset Bazaars</span>
+                            </div>
+                            <ul class="activity-list">
+                                <li class="activity-item">
+                                    <span class="time-tag">08:30 AM</span>
+                                    <span class="activity-desc">Serene morning prayers and white marble carvings at Birla Mandir (Laxmi Narayan Temple).</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">11:00 AM</span>
+                                    <span class="activity-desc">Adventure hike through the mountain gorge to sacred Galta Ji (Monkey Temple) natural freshwater springs.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">02:00 PM</span>
+                                    <span class="activity-desc">Rooftop leisure lunch at Baradari Restaurant inside City Palace grounds.</span>
+                                </li>
+                                <li class="activity-item">
+                                    <span class="time-tag">05:30 PM</span>
+                                    <span class="activity-desc">Souvenir treasure hunt in Bapu Bazaar for handcrafted Mojaris, camel leather goods, and bandhani textiles.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="itinerary-actions">
+                        <button type="button" class="btn-login" style="cursor: pointer;" onclick="saveItinerary(window.currentItineraryDest || 'Jaipur, Rajasthan')">
+                            💾 Save Itinerary
+                        </button>
+                        <button type="button" class="btn-card-action" style="cursor: pointer;" onclick="handleExportPDF(window.currentItineraryDest || 'Jaipur, Rajasthan', window.currentItineraryDays || 5)">
+                            🖨️ Export PDF
+                        </button>
+                        <button type="button" class="btn-card-action" style="cursor: pointer; background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 70, 229, 0.2)); border-color: rgba(0, 242, 254, 0.4); color: #00f2fe;" onclick="triggerLiveAIGeneration()">
+                            🔄 Regenerate Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 4. TRIP PLANNING COMMUNITY REVIEWS & INSIGHTS SECTION -->
+    <section class="planner-reviews-section" id="plannerReviewsSection">
+        <div class="planner-reviews-header">
+            <span class="section-tag">Trip Planning Intelligence</span>
+            <h2>Traveler Reviews &amp; Proven Insights</h2>
+            <p class="subtitle">Explore authentic nomad experiences, secret spots, and ratings across destinations to help you architect an unforgettable journey.</p>
+        </div>
+
+        <!-- Destination Focus Indicator (Only shown when a destination is selected) -->
+        {% if selected_dest or target_dest %}
+        <div class="planner-dest-filter-bar" style="align-items: center; justify-content: center; margin-bottom: 2rem;">
+            <span class="filter-label">Destination Focus:</span>
+            <div class="planner-filter-pill active" style="cursor: default; pointer-events: none; background: rgba(0, 242, 254, 0.16); border-color: rgba(0, 242, 254, 0.5); color: #00f2fe; font-weight: 700; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);">
+                📍 {{ target_dest|default:selected_dest.title }}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="planner-reviews-grid">
+            <!-- Left Column: Filterable Reviews Showcase -->
+            <div class="planner-reviews-column">
+                <div class="planner-column-header">
+                    <h3 id="currentFilterTitle">{% if selected_dest %}Reviews for {{ selected_dest.title }}{% elif target_dest %}Reviews for {{ target_dest }}{% else %}Community Reviews{% endif %}</h3>
+                    <span class="reviews-count-badge" id="visibleReviewsBadge">{{ reviews|length }} reviews</span>
+                </div>
+
+                <div class="planner-reviews-list" id="plannerReviewsList">
+                    {% for rev in reviews %}
+                    <div class="planner-single-review" data-dest="{{ rev.destination.title|lower }}" data-dest-id="{{ rev.destination.id }}">
+                        <div class="p-review-top">
+                            <div class="p-reviewer-info">
+                                <div class="p-reviewer-avatar">{{ rev.username|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="p-reviewer-name-row">
+                                        <span class="p-reviewer-name">{{ rev.username }}</span>
+                                        <span class="verified-tag">✓ Verified Nomad</span>
+                                    </div>
+                                    <span class="p-review-time">{{ rev.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            <div class="p-dest-badge" onclick="filterPlannerReviews('{{ rev.destination.title|escapejs }}')" style="cursor: pointer;" title="Show reviews for {{ rev.destination.title }}">
+                                <span>📍 {{ rev.destination.title }}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-review-stars">
+                            {% if rev.rating >= 5 %}★★★★★{% elif rev.rating == 4 %}★★★★☆{% elif rev.rating == 3 %}★★★☆☆{% elif rev.rating == 2 %}★★☆☆☆{% else %}★☆☆☆☆{% endif %}
+                            <span class="p-rating-num">{{ rev.rating }}.0 / 5.0</span>
+                        </div>
+
+                        <p class="p-review-comment">“{{ rev.comment }}”</p>
+                    </div>
+                    {% empty %}
+                    <div class="planner-reviews-empty">
+                        <div class="empty-icon">✨</div>
+                        <h4>No Traveler Insights Yet</h4>
+                        <p>Be the first nomad to share an authentic review and trip tip for this destination!</p>
+                    </div>
+                    {% endfor %}
+                    <div class="planner-reviews-empty" id="plannerFilterEmpty" style="display: none;">
+                        <div class="empty-icon">📍</div>
+                        <h4>No Reviews Found for this Destination</h4>
+                        <p>No traveler has left an insight yet for this coordinate. Be the first to share your experience on the right!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: "Share Your Travel Insight / Add Review" Card -->
+            <div class="planner-review-form-card">
+                <div class="p-form-header">
+                    <span class="p-form-icon">✍️</span>
+                    <div>
+                        <h3>Share Your Travel Insight</h3>
+                        <p>Leave tips to help fellow nomads synthesize better trips</p>
+                    </div>
+                </div>
+
+                {% if selected_dest or destinations %}
+                <form id="plannerReviewForm" method="POST" action="{% if selected_dest %}{% url 'add_review' destination_id=selected_dest.id %}{% else %}{% url 'add_review' destination_id=destinations.0.id %}{% endif %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="from_page" value="planner">
+                    {% if selected_dest %}
+                    <input type="hidden" name="destination_id" value="{{ selected_dest.id }}">
+                    <div class="p-form-group">
+                        <label class="p-field-label">Target Destination</label>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.1rem; background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.28); border-radius: 12px; color: #00f2fe; font-weight: 700; font-size: 0.95rem;">
+                            <span>📍</span>
+                            <span>{{ selected_dest.title }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-form-group">
+                        <label class="p-field-label">Target Destination *</label>
+                        <div class="p-select-wrapper">
+                            <select id="reviewDestinationSelect" class="p-select" required onchange="onPlannerDestSelectChange(this)">
+                                {% for dest in destinations %}
+                                <option value="{{ dest.id }}" data-title="{{ dest.title }}" data-action="{% url 'add_review' destination_id=dest.id %}">
+                                    📍 {{ dest.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- YouTube-Style Commenter Identity (Posting by name from email/Google account) -->
+                    <div class="yt-commenter-card">
+                        <div class="yt-commenter-avatar" id="ytCommenterAvatarBox">
+                            {% if user_picture %}
+                            <img src="{{ user_picture }}" alt="{{ user_display_name }}" class="yt-avatar-img" referrerpolicy="no-referrer">
+                            {% else %}
+                            <span class="yt-avatar-initial" id="ytCommenterInitial">
+                                {% if user_display_name %}{{ user_display_name|slice:":1"|upper }}{% elif request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}E{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="yt-commenter-details">
+                            <div class="yt-commenter-meta">
+                                <span class="yt-commenter-label">Commenting as</span>
+                                <span class="yt-verified-badge" title="Authenticated account">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    {% if request.user.is_authenticated %}Google Account{% else %}Verified Nomad{% endif %}
+                                </span>
+                            </div>
+                            <div class="yt-commenter-info">
+                                <span class="yt-commenter-name" id="ytCommenterName">
+                                    {% if user_display_name %}{{ user_display_name }}{% elif request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% else %}Explorer{% endif %}
+                                </span>
+                                <span class="yt-commenter-email" id="ytCommenterEmail">{% if user_email or request.user.email %}({{ user_email|default:request.user.email }}){% endif %}</span>
+                            </div>
+                        </div>
+                        <input type="hidden" name="author_name" id="plannerReviewAuthorName" value="{% if user_display_name %}{{ user_display_name }}{% elif request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
+                    </div>
+
+                    <div class="p-form-group">
+                        <div class="p-star-header">
+                            <label class="p-field-label">Rating Score *</label>
+                            <span class="dest-rating-feedback" id="plannerRatingFeedback">5.0 ★ Exceptional Odyssey</span>
+                        </div>
+                        <div class="planner-star-picker" id="plannerStarPicker">
+                            <button type="button" class="p-star active" data-val="1" onclick="setPlannerRating(1)">★</button>
+                            <button type="button" class="p-star active" data-val="2" onclick="setPlannerRating(2)">★</button>
+                            <button type="button" class="p-star active" data-val="3" onclick="setPlannerRating(3)">★</button>
+                            <button type="button" class="p-star active" data-val="4" onclick="setPlannerRating(4)">★</button>
+                            <button type="button" class="p-star active" data-val="5" onclick="setPlannerRating(5)">★</button>
+                            <input type="hidden" name="rating" id="plannerRatingInput" value="5">
+                        </div>
+                    </div>
+
+                    <div class="p-form-group">
+                        <div class="p-star-header">
+                            <label class="p-field-label">Your Review &amp; Trip Tips *</label>
+                            <span class="p-char-count" id="plannerCharCount">0 / 400</span>
+                        </div>
+                        <textarea name="comment" id="plannerReviewComment" class="dest-review-textarea" rows="4" placeholder="What hidden spots, timing tips, or budget recommendations made this trip special?" required minlength="5" maxlength="400" oninput="updatePlannerCharCount(this)"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-glow-cyan" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+                        <span>Publish Trip Review &amp; Tips</span>
+                        <span>✨</span>
+                    </button>
+                </form>
+                {% else %}
+                <p style="color: #94a3b8; font-size: 0.9rem;">Destinations will appear here once added in the admin panel.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="logo">TravelMate <span>AI</span></div>
+                <p>Next-generation autonomous travel companion engineered with dark glassmorphism aesthetics and AI intelligence.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'explore' %}">Explore Destinations</a></li>
+                    <li><a href="{% url 'planner' %}">AI Trip Planner</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>AI Capabilities</h4>
+                <ul>
+                    <li><a href="{% url 'planner' %}">Dynamic Day Schedules</a></li>
+                    <li><a href="{% url 'planner' %}">Budget Cost Estimator</a></li>
+                    <li><a href="{% url 'planner' %}">Weather Adaptation</a></li>
+                    <li><a href="{% url 'planner' %}">Crowd Forecasts</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Account</h4>
+                <ul>
+                    <li><a href="{% url 'auth' %}">Login / Register</a></li>
+                    <li><a href="{% url 'auth' %}">Saved Itineraries</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 TravelMate AI Inc. All rights reserved. Built for discerning global nomads.</p>
+            <div class="footer-social-links">
+                <a href="#" aria-label="Twitter">𝕏</a>
+                <a href="#" aria-label="GitHub">GitHub</a>
+                <a href="#" aria-label="Discord">Discord</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GLOBAL AI CHATBOT POPUP MODAL (Blurry Background) -->
+    {% include 'includes/ai_chatbot_modal.html' %}
+
+    <script src="{% static 'script.js' %}?v=17.0"></script>
+    <script>
+        const PLANNER_RATING_TEXTS = {
+            1: '1.0 ★ Needs Work',
+            2: '2.0 ★ Fair Experience',
+            3: '3.0 ★ Good Experience',
+            4: '4.0 ★ Great Adventure!',
+            5: '5.0 ★ Exceptional Odyssey'
+        };
+
+        function setPlannerRating(ratingVal) {
+            const input = document.getElementById('plannerRatingInput');
+            if (input) input.value = ratingVal;
+            const stars = document.querySelectorAll('#plannerStarPicker .p-star');
+            stars.forEach(btn => {
+                const val = parseInt(btn.getAttribute('data-val'), 10);
+                if (val <= ratingVal) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            const feedback = document.getElementById('plannerRatingFeedback');
+            if (feedback && PLANNER_RATING_TEXTS[ratingVal]) {
+                feedback.textContent = PLANNER_RATING_TEXTS[ratingVal];
+            }
+        }
+
+        function updatePlannerCharCount(textarea) {
+            const counter = document.getElementById('plannerCharCount');
+            if (counter && textarea) {
+                counter.textContent = textarea.value.length + ' / 400';
+            }
+        }
+
+        function onPlannerDestSelectChange(selectEl) {
+            const form = document.getElementById('plannerReviewForm');
+            if (!selectEl || selectEl.selectedIndex < 0) return;
+            const opt = selectEl.options[selectEl.selectedIndex];
+            if (form && opt && opt.dataset.action) {
+                form.action = opt.dataset.action;
+            }
+        }
+
+        function filterPlannerReviews(destName) {
+            const pills = document.querySelectorAll('.planner-filter-pill');
+            pills.forEach(p => p.classList.remove('active'));
+
+            const targetNorm = (destName || 'all').trim().toLowerCase();
+            
+            // Find and activate matching pill
+            let matchedPill = null;
+            pills.forEach(p => {
+                const pDest = (p.getAttribute('data-dest') || '').toLowerCase();
+                if (targetNorm === 'all' && pDest === 'all') {
+                    matchedPill = p;
+                } else if (targetNorm !== 'all' && (pDest.includes(targetNorm) || targetNorm.includes(pDest))) {
+                    matchedPill = p;
+                }
+            });
+            if (matchedPill) matchedPill.classList.add('active');
+
+            // Filter review cards
+            const cards = document.querySelectorAll('.planner-single-review');
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const cardDest = (card.getAttribute('data-dest') || '').toLowerCase();
+                if (targetNorm === 'all' || cardDest.includes(targetNorm) || targetNorm.includes(cardDest)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update badge and title
+            const badge = document.getElementById('visibleReviewsBadge');
+            if (badge) badge.textContent = visibleCount + ' reviews';
+
+            const titleEl = document.getElementById('currentFilterTitle');
+            if (titleEl) {
+                titleEl.textContent = targetNorm === 'all' ? 'Community Reviews' : 'Reviews for ' + (destName.split(',')[0].trim());
+            }
+
+            const filterEmpty = document.getElementById('plannerFilterEmpty');
+            if (filterEmpty) {
+                filterEmpty.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+            }
+
+            // Sync the review form select if matching destination exists
+            if (targetNorm !== 'all') {
+                const select = document.getElementById('reviewDestinationSelect');
+                if (select) {
+                    for (let i = 0; i < select.options.length; i++) {
+                        const optTitle = (select.options[i].getAttribute('data-title') || '').toLowerCase();
+                        if (optTitle.includes(targetNorm) || targetNorm.includes(optTitle)) {
+                            select.selectedIndex = i;
+                            onPlannerDestSelectChange(select);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sync reviewer identity from localStorage (for client-side or fallback sessions)
+        function syncPlannerReviewUser() {
+            try {
+                const stored = localStorage.getItem('tm_user');
+                if (stored) {
+                    const u = JSON.parse(stored);
+                    const name = u.name || u.username;
+                    const email = u.email;
+                    const avatar = u.avatar;
+
+                    const authorField = document.getElementById('plannerReviewAuthorName');
+                    const nameEl = document.getElementById('ytCommenterName');
+                    const emailEl = document.getElementById('ytCommenterEmail');
+                    const initialEl = document.getElementById('ytCommenterInitial');
+                    const avatarBox = document.getElementById('ytCommenterAvatarBox');
+
+                    if (name) {
+                        if (authorField && (!authorField.value || authorField.value === 'Explorer')) {
+                            authorField.value = name;
+                        }
+                        if (nameEl && (!nameEl.textContent.trim() || nameEl.textContent.trim() === 'Explorer')) {
+                            nameEl.textContent = name;
+                        }
+                        if (initialEl && (!initialEl.textContent.trim() || initialEl.textContent.trim() === 'E')) {
+                            initialEl.textContent = name.charAt(0).toUpperCase();
+                        }
+                    }
+                    if (email && emailEl && !emailEl.textContent.trim()) {
+                        emailEl.textContent = `(${email})`;
+                    }
+                    if (avatar && avatarBox && !avatarBox.querySelector('img')) {
+                        avatarBox.innerHTML = `<img src="${avatar}" alt="${name || 'User'}" class="yt-avatar-img">`;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Handle planner destination selector change
+        function onPlannerDestinationChange(selectElement) {
+            if (!selectElement) return;
+            const destValue = selectElement.value;
+            if (destValue) {
+                // Automatically filter community reviews for the selected destination
+                filterPlannerReviews(destValue);
+
+                // Update preview or trigger change through central handler
+                if (typeof window.handlePlannerParamChange === 'function') {
+                    window.handlePlannerParamChange('destination', destValue);
+                } else if (typeof window.updatePreviewForDestination === 'function' && window.hasPlanBeenGenerated) {
+                    window.updatePreviewForDestination(destValue);
+                }
+
+                // Synchronize the review form selector on the right if present
+                const reviewSelect = document.getElementById('reviewDestinationSelect');
+                if (reviewSelect) {
+                    const selectedOpt = selectElement.options[selectElement.selectedIndex];
+                    const destId = selectedOpt ? selectedOpt.getAttribute('data-id') : null;
+                    if (destId) {
+                        reviewSelect.value = destId;
+                        onPlannerDestSelectChange(reviewSelect);
+                    }
+                }
+            }
+        }
+
+        // Check for URL query params (e.g. ?dest=Goa from Explore page)
+        document.addEventListener('DOMContentLoaded', () => {
+            syncPlannerReviewUser();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetDest = urlParams.get('dest');
+            if (targetDest) {
+                const decodedDest = decodeURIComponent(targetDest);
+                const destSelect = document.getElementById('plannerDestination');
+                if (destSelect) {
+                    // Try exact value match first
+                    destSelect.value = decodedDest;
+                    // If not matched, search options for substring / city token match
+                    if (!destSelect.value || destSelect.selectedIndex <= 0) {
+                        const targetLower = decodedDest.toLowerCase();
+                        for (let i = 0; i < destSelect.options.length; i++) {
+                            const optVal = (destSelect.options[i].value || '').toLowerCase();
+                            if (optVal && (optVal.includes(targetLower) || targetLower.includes(optVal.split(',')[0]))) {
+                                destSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // Automatically filter reviews for this destination to give good ideas for planning!
+                filterPlannerReviews(decodedDest);
+
+                if (urlParams.get('autoplan') === '1' && typeof window.fetchDynamicItinerary === 'function') {
+                    window.fetchDynamicItinerary(decodedDest, 5);
+                }
+            } else {
+                // If no URL dest param, filter reviews for the currently selected destination
+                const destSelect = document.getElementById('plannerDestination');
+                const initialSelected = destSelect && destSelect.value ? destSelect.value : 'Jaipur, Rajasthan';
+                filterPlannerReviews(initialSelected);
+            }
+
+            // Initialize select if present
+            const reviewSelect = document.getElementById('reviewDestinationSelect');
+            if (reviewSelect) {
+                onPlannerDestSelectChange(reviewSelect);
+            }
+        });
+    </script>
+</body>
+</html>
