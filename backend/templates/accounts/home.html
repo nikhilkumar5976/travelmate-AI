@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head><title>Home - TravelMate AI</title></head>
+<body>
+  <h1>Welcome, {{ user.username }}!</h1>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+  </form>
+</body>
+</html>
