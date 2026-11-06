@@ -22,6 +22,8 @@ class Trip(models.Model):
     budget = models.DecimalField(max_digits=12, decimal_places=2)
     interests = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
+    summary = models.TextField(blank=True,default='')
+    budget_warning=models.TextField(blank=True,default='')
 
     def __str__(self):
         return f'{self.destination} ({self.num_days} days)'

@@ -3,6 +3,13 @@
 <head><title>{{ trip.destination }} - TravelMate AI</title></head>
 <body>
   <h1>{{ trip.destination }}</h1>
+  {% if trip.summary %}
+    <p><strong>Summary:</strong> {{ trip.summary }}</p>
+  {% endif %}
+  {% if trip.budget_warning %}
+    <p style="color: #b30000;"><strong>Notice:</strong> {{ trip.budget_warning }}</p>
+  {% endif %}
+
   <p>Days: {{ trip.num_days }}</p>
   <p>Total budget: {{ trip.budget }}</p>
   <p>Travelers: {{ members|length }}</p>
@@ -15,6 +22,28 @@
       <li>{{ member.user.username }} ({{ member.role }})</li>
     {% endfor %}
   </ul>
+
+  {% if days %}
+    <h2>Itinerary</h2>
+    {% for day in days %}
+      <div>
+        <h3>Day {{ day.day_number }}{% if day.title %}: {{ day.title }}{% endif %}</h3>
+        {% if day.stops.all %}
+          <ul>
+            {% for stop in day.stops.all %}
+              <li>
+                <strong>{{ stop.name }}</strong> ({{ stop.get_time_of_day_display }} &bull; {{ stop.get_category_display }})
+                {% if stop.estimated_cost_per_person %} - Est: {{ stop.estimated_cost_per_person }}{% endif %}
+                {% if stop.description %}<br><small>{{ stop.description }}</small>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><em>No stops planned yet for this day.</em></p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
 
   <p><a href="{% url 'home' %}">Back to home</a></p>
 </body>

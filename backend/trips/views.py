@@ -45,8 +45,10 @@ def trip_detail(request, trip_id):
     members = trip.members.select_related('user')
     count = members.count()
     per_person = trip.budget / count if count > 0 else trip.budget
+    days = trip.days.prefetch_related('stops').all()
     return render(request, 'trips/trip_detail.html', {
         'trip': trip,
         'members': members,
         'per_person': per_person,
+        'days': days,
     })
