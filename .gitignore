@@ -1,0 +1,12 @@
+# Environment variables
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+*.sqlite3
+db.sqlite3
+media/
