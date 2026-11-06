@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ trip.destination }} - TravelMate AI</title></head>
+<body>
+  <h1>{{ trip.destination }}</h1>
+  <p>Days: {{ trip.num_days }}</p>
+  <p>Total budget: {{ trip.budget }}</p>
+  <p>Travelers: {{ members|length }}</p>
+  <p>Budget per person: {{ per_person|floatformat:2 }}</p>
+  <p>Interests: {{ trip.interests|join:", "|capfirst }}</p>
+
+  <h2>Members</h2>
+  <ul>
+    {% for member in members %}
+      <li>{{ member.user.username }} ({{ member.role }})</li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{% url 'home' %}">Back to home</a></p>
+</body>
+</html>

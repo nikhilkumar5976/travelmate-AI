@@ -11,6 +11,20 @@
   {% endif %}
 
   <p><a href="{% url 'edit_profile' %}">Edit profile</a></p>
+  <p><a href="{% url 'create_trip' %}">Create a trip</a></p>
+
+  <h2>Your Trips</h2>
+  {% if trips %}
+    <ul>
+      {% for trip in trips %}
+        <li>
+          <a href="{% url 'trip_detail' trip.id %}">{{ trip.destination }}</a> ({{ trip.num_days }} days - Budget: ${{ trip.budget }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You have not joined or created any trips yet.</p>
+  {% endif %}
 
   <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}

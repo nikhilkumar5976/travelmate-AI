@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>My Trips - TravelMate AI</title></head>
+<body>
+  <h1>My Trips</h1>
+  <p><a href="{% url 'create_trip' %}">Plan a new trip</a> | <a href="{% url 'home' %}">Back to home</a></p>
+
+  {% if trips %}
+    <ul>
+      {% for trip in trips %}
+        <li>
+          <a href="{% url 'trip_detail' trip.id %}">{{ trip.destination }}</a> ({{ trip.num_days }} days - Budget: ${{ trip.budget }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No trips found. <a href="{% url 'create_trip' %}">Create one now!</a></p>
+  {% endif %}
+</body>
+</html>

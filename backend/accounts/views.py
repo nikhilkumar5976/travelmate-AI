@@ -1,7 +1,8 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import SignUpForm,EditProfileForm
+from .forms import SignUpForm, EditProfileForm
 from .models import Profile
+from trips.models import Trip
 from django.contrib.auth import login
 from django.contrib import messages
 
@@ -25,7 +26,8 @@ def signup(request):
 @login_required
 def home(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    return render(request, 'accounts/home.html', {'profile': profile})
+    trips = Trip.objects.filter(members__user=request.user).distinct().order_by('-created_at')
+    return render(request, 'home.html', {'profile': profile, 'trips': trips})
 
 
 @login_required

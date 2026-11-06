@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create trip - TravelMate AI</title></head>
+<body>
+  <h1>Plan a new trip</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create trip</button>
+  </form>
+  <p><a href="{% url 'home' %}">Back to home</a></p>
+</body>
+</html>
