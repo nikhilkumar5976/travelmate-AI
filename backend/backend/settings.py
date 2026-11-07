@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-@yt3agemx4a1o&9yq_uu$x$esv8zjv$z8^2^*%r^nxh(it-0)2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
@@ -150,3 +150,5 @@ LOGOUT_REDIRECT_URL = 'login'
 LLM_API_KEY = os.environ.get('LLM_API_KEY', '')
 LLM_MODEL = os.environ.get('LLM_MODEL', 'gemini-2.5-flash')
 TRIP_CURRENCY = 'INR'
+
+DEFAULT_FROM_EMAIL = 'TravelMate AI <noreply@travelmate.local>'

@@ -1,6 +1,5 @@
 from django import forms
-
-from .models import Trip, INTEREST_CHOICES
+from .models import Trip, TripMember, Invitation, INTEREST_CHOICES
 
 MAX_DAYS = 15
 
@@ -37,3 +36,18 @@ class TripForm(forms.ModelForm):
         if budget <= 0:
             raise forms.ValidationError('Budget must be greater than 0.')
         return budget
+
+class InviteForm(forms.Form):
+    email = forms.EmailField()
+
+    def __init__(self, *args, trip=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.trip = trip
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if TripMember.objects.filter(trip=self.trip, user__email__iexact=email).exists():
+            raise forms.ValidationError('This person is already in the trip.')
+        if Invitation.objects.filter(trip=self.trip, email__iexact=email, status='pending').exists():
+            raise forms.ValidationError('An invitation to this email is already pending.')
+        return email

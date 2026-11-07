@@ -1,3 +1,5 @@
+import secrets
+
 from django.conf import settings
 from django.db import models
 
@@ -13,6 +15,10 @@ INTEREST_CHOICES = [
 ]
 
 
+def generate_token():
+    return secrets.token_urlsafe(32)
+
+
 class Trip(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_trips'
@@ -22,8 +28,8 @@ class Trip(models.Model):
     budget = models.DecimalField(max_digits=12, decimal_places=2)
     interests = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
-    summary = models.TextField(blank=True,default='')
-    budget_warning=models.TextField(blank=True,default='')
+    summary = models.TextField(blank=True, default='')
+    budget_warning = models.TextField(blank=True, default='')
 
     def __str__(self):
         return f'{self.destination} ({self.num_days} days)'
@@ -45,3 +51,24 @@ class TripMember(models.Model):
 
     def __str__(self):
         return f'{self.user.username} in {self.trip.destination}'
+
+
+class Invitation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='invitations')
+    email = models.EmailField()
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_invitations'
+    )
+    token = models.CharField(max_length=64, unique=True, default=generate_token)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.email} -> {self.trip.destination} ({self.status})'

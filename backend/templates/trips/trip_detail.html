@@ -58,6 +58,21 @@
       <li>{{ member.user.username }} ({{ member.role }})</li>
     {% endfor %}
   </ul>
+    <h2>Invite someone</h2>
+  <form method="post" action="{% url 'invite_member' trip.id %}">
+    {% csrf_token %}
+    <input type="email" name="email" placeholder="friend@example.com" required>
+    <button type="submit">Send invitation</button>
+  </form>
+
+  {% if pending_invites %}
+    <h3>Pending invitations</h3>
+    <ul>
+      {% for invite in pending_invites %}
+        <li>{{ invite.email }} (invited by {{ invite.invited_by.username }})</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 
   <p><a href="{% url 'home' %}">Back to home</a></p>
 </body>
