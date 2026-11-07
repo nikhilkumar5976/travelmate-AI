@@ -1,11 +1,18 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
+from ai.services import generate_itinerary, ItineraryError
+from itinerary.models import Stop
 from .forms import TripForm
 from .models import Trip, TripMember
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -43,12 +50,35 @@ def trip_detail(request, trip_id):
         id=trip_id
     )
     members = trip.members.select_related('user')
-    count = members.count()
-    per_person = trip.budget / count if count > 0 else trip.budget
-    days = trip.days.prefetch_related('stops').all()
+    member_count = members.count()
+    days = trip.days.prefetch_related('stops')
+
+    cost_per_person = Stop.objects.filter(day__trip=trip).aggregate(
+        total=Sum('estimated_cost_per_person')
+    )['total'] or 0
+
     return render(request, 'trips/trip_detail.html', {
         'trip': trip,
         'members': members,
-        'per_person': per_person,
         'days': days,
+        'budget_per_person': trip.budget / member_count if member_count > 0 else trip.budget,
+        'cost_per_person': cost_per_person,
+        'group_cost': cost_per_person * member_count,
+        'is_owner': trip.owner == request.user,
     })
+
+
+@login_required
+@require_POST
+def generate_itinerary_view(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, owner=request.user)
+    try:
+        generate_itinerary(trip)
+        messages.success(request, 'Your itinerary is ready.')
+    except ItineraryError as error:
+        logger.warning('Unusable AI reply: %s', error)
+        messages.error(request, 'The AI gave an unusable answer. Please try again.')
+    except Exception:
+        logger.exception('Itinerary generation failed')
+        messages.error(request, 'Could not reach the AI service. Please try again.')
+    return redirect('trip_detail', trip_id=trip.id)

@@ -148,4 +148,5 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 
 LLM_API_KEY = os.environ.get('LLM_API_KEY', '')
+LLM_MODEL = os.environ.get('LLM_MODEL', 'gemini-2.5-flash')
 TRIP_CURRENCY = 'INR'
