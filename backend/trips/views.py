@@ -43,11 +43,11 @@ def create_trip(request):
 @login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(
-        Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).distinct(),
+        Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).select_related('owner').distinct(),
         id=trip_id
     )
-    members = trip.members.select_related('user')
-    member_count = members.count()
+    members = list(trip.members.select_related('user'))
+    member_count = len(members)
     days = trip.days.prefetch_related('stops')
 
     cost_per_person = Stop.objects.filter(day__trip=trip).aggregate(
@@ -61,9 +61,9 @@ def trip_detail(request, trip_id):
         'budget_per_person': trip.budget / member_count if member_count > 0 else trip.budget,
         'cost_per_person': cost_per_person,
         'group_cost': cost_per_person * member_count,
-        'is_owner': trip.owner == request.user,
+        'is_owner': trip.owner_id == request.user.id,
         'invite_form': InviteForm(trip=trip),
-        'pending_invites': trip.invitations.filter(status='pending'),
+        'pending_invites': trip.invitations.filter(status='pending').select_related('invited_by'),
     })
 
 
@@ -122,14 +122,17 @@ def invite_member(request, trip_id):
     return redirect('trip_detail', trip_id=trip.id)
 
 def invitation_detail(request, token):
-    invitation = get_object_or_404(Invitation, token=token)
+    invitation = get_object_or_404(
+        Invitation.objects.select_related('trip', 'invited_by'),
+        token=token,
+    )
     context = {'invitation': invitation, 'trip': invitation.trip}
 
     if invitation.status != 'pending':
         context['state'] = 'closed'
     elif not request.user.is_authenticated:
         context['state'] = 'anonymous'
-    elif request.user.email.lower() != invitation.email.lower():
+    elif (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
         context['state'] = 'wrong_account'
     else:
         profile, _ = Profile.objects.get_or_create(user=request.user)
@@ -145,7 +148,7 @@ def invitation_detail(request, token):
 def respond_invitation(request, token):
     invitation = get_object_or_404(Invitation, token=token, status='pending')
 
-    if request.user.email.lower() != invitation.email.lower():
+    if (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
         messages.error(request, 'This invitation was sent to a different email address.')
         return redirect('invitation', token=token)
 
@@ -177,7 +180,7 @@ def respond_invitation(request, token):
 def my_trips(request):
     memberships = (
         TripMember.objects.filter(user=request.user)
-        .select_related('trip')
+        .select_related('trip', 'trip__owner')
         .order_by('-trip__created_at')
     )
     return render(request, 'trips/my_trips.html', {'memberships': memberships})

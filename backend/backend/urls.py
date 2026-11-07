@@ -19,4 +19,5 @@ urlpatterns = [
     path('profile/edit/', account_views.edit_profile, name='edit_profile'),
     path('trips/', include('trips.urls')),
     path('chat/', include('chat.urls')),
+    path('ai/', include('ai.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
