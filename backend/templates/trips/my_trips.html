@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><title>My trips - TravelMate AI</title></head>
+<body>
+  <h1>My trips</h1>
+
+  {% for message in messages %}
+    <p>{{ message }}</p>
+  {% endfor %}
+
+  {% if memberships %}
+    <ul>
+      {% for membership in memberships %}
+        <li>
+          <a href="{% url 'trip_detail' membership.trip.id %}">{{ membership.trip.destination }}</a>
+          - {{ membership.trip.num_days }} days
+          - {{ membership.get_role_display }}
+          - {{ membership.trip.members.count }} traveler(s)
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You have no trips yet.</p>
+  {% endif %}
+
+  <p><a href="{% url 'create_trip' %}">Create a trip</a></p>
+  <p><a href="{% url 'home' %}">Back to home</a></p>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import logging
+from django.db import transaction
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -37,14 +38,6 @@ def create_trip(request):
     else:
         form = TripForm()
     return render(request, 'trips/create_trip.html', {'form': form})
-
-
-@login_required
-def trip_list(request):
-    trips = Trip.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct().order_by('-created_at')
-    return render(request, 'trips/trip_list.html', {'trips': trips})
 
 
 @login_required
@@ -179,3 +172,58 @@ def respond_invitation(request, token):
         return redirect('home')
 
     return redirect('invitation', token=token)
+
+@login_required
+def my_trips(request):
+    memberships = (
+        TripMember.objects.filter(user=request.user)
+        .select_related('trip')
+        .order_by('-trip__created_at')
+    )
+    return render(request, 'trips/my_trips.html', {'memberships': memberships})
+
+
+trip_list = my_trips
+
+
+@login_required
+@require_POST
+def leave_trip(request, trip_id):
+    membership = get_object_or_404(TripMember, trip_id=trip_id, user=request.user)
+    trip = membership.trip
+    destination = trip.destination
+    message = f'You left the trip to {destination}.'
+
+    with transaction.atomic():
+        if membership.role == 'owner':
+            successor = trip.members.exclude(user=request.user).order_by('joined_at').first()
+            if successor is None:
+                trip.delete()
+                messages.info(
+                    request,
+                    f'You left, and the trip to {destination} was deleted because nobody else was in it.',
+                )
+                return redirect('my_trips')
+            successor.role = 'owner'
+            successor.save()
+            trip.owner = successor.user
+            trip.save()
+            message = f'You left the trip to {destination}. {successor.user.username} is now the owner.'
+        membership.delete()
+
+    messages.info(request, message)
+    return redirect('my_trips')
+
+
+@login_required
+@require_POST
+def remove_member(request, trip_id, user_id):
+    trip = get_object_or_404(Trip, id=trip_id, owner=request.user)
+    membership = get_object_or_404(TripMember, trip=trip, user_id=user_id)
+    if membership.user_id == request.user.id:
+        messages.error(request, 'Use "Leave trip" to leave your own trip.')
+    else:
+        username = membership.user.username
+        membership.delete()
+        messages.success(request, f'{username} was removed from the trip.')
+    return redirect('trip_detail', trip_id=trip.id)
