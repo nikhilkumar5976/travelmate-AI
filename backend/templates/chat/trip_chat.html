@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Chat - {{ trip.destination }} - TravelMate AI</title></head>
+<body>
+  <h1>Group chat: {{ trip.destination }}</h1>
+  <p>
+    <a href="{% url 'trip_detail' trip.id %}">Back to trip</a> |
+    <a href="{% url 'trip_chat' trip.id %}">Refresh messages</a>
+  </p>
+
+  <div>
+    {% for msg in chat_messages %}
+      <p>
+        {% if msg.sender.profile.photo %}
+          <img src="{{ msg.sender.profile.photo.url }}" alt="" width="32" height="32">
+        {% endif %}
+        <strong>{% if msg.sender == request.user %}You{% else %}{{ msg.sender.username }}{% endif %}</strong>
+        <small>{{ msg.created_at|date:"d M, H:i" }}</small>
+        <br>{{ msg.text|linebreaksbr }}
+      </p>
+    {% empty %}
+      <p>No messages yet. Say hello!</p>
+    {% endfor %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Send</button>
+  </form>
+</body>
+</html>

@@ -2,7 +2,8 @@
 <html>
 <head><title>{{ trip.destination }} - TravelMate AI</title></head>
 <body>
-  <h1>{{ trip.destination }}</h1>
+    <h1>{{ trip.destination }}</h1>
+    <p><a href="{% url 'trip_chat' trip.id %}">Open group chat</a></p>
 
   {% for message in messages %}
     <p>{{ message }}</p>

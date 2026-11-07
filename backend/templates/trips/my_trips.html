@@ -16,6 +16,7 @@
           - {{ membership.trip.num_days }} days
           - {{ membership.get_role_display }}
           - {{ membership.trip.members.count }} traveler(s)
+            - <a href="{% url 'trip_chat' membership.trip.id %}">Group chat</a>
         </li>
       {% endfor %}
     </ul>
