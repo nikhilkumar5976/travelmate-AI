@@ -1,101 +1,217 @@
-<!DOCTYPE html>
-<html>
-<head><title>{{ trip.destination }} - TravelMate AI</title></head>
-<body>
-    <h1>{{ trip.destination }}</h1>
-    <p><a href="{% url 'trip_chat' trip.id %}">Open group chat</a></p>
+{% extends 'base.html' %}
 
-  {% for message in messages %}
-    <p>{{ message }}</p>
-  {% endfor %}
+{% block title %}{{ trip.destination }} - TravelMate AI{% endblock %}
 
-  <p>Days: {{ trip.num_days }}</p>
-  <p>Interests: {{ trip.interests|join:", "|capfirst }}</p>
-  <p>Travelers: {{ members|length }}</p>
-  <p>Total budget: {{ trip.budget }} ({{ budget_per_person|floatformat:2 }} per person)</p>
+{% block extra_head %}
+<style>
+  .detail-hero {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(194, 65, 12, 0.25));
+    border: 1px solid var(--navy-border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-box {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .stat-box small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-box strong { font-size: 18px; color: var(--text); font-weight: 700; }
+  .day-card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .stop-item {
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .member-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    margin-bottom: 8px;
+  }
+</style>
+{% endblock %}
 
-  {% if is_owner %}
+{% block content %}
+<div class="detail-hero">
+  <div>
+    <span class="badge badge-sun" style="margin-bottom: 10px;">Trip destination</span>
+    <h1 style="margin: 0 0 8px;">{{ trip.destination }}</h1>
+    <p style="margin: 0;">Plan, budget, and itinerary with your travel crew.</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <a href="{% url 'trip_chat' trip.id %}" class="btn btn-sky">Open group chat</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-box">
+    <small>Duration</small>
+    <strong>Days: {{ trip.num_days }}</strong>
+  </div>
+  <div class="stat-box">
+    <small>Interests</small>
+    <strong>Interests: {{ trip.interests|join:", "|capfirst }}</strong>
+  </div>
+  <div class="stat-box">
+    <small>Group size</small>
+    <strong>Travelers: {{ members|length }}</strong>
+  </div>
+  <div class="stat-box">
+    <small>Allocated budget</small>
+    <strong>Total budget: {{ trip.budget }} ({{ budget_per_person|floatformat:2 }} per person)</strong>
+  </div>
+</div>
+
+{% if is_owner %}
+  <div class="card" style="margin-bottom: 24px;">
+    <h3 style="margin-top: 0;">AI Itinerary generator</h3>
+    <p>Generate a customized day-by-day plan based on your destination, duration, and interests.</p>
     <form method="post" action="{% url 'generate_itinerary' trip.id %}">
       {% csrf_token %}
-      <button type="submit">
+      <button type="submit" class="btn">
         {% if days %}Regenerate itinerary{% else %}Generate itinerary{% endif %}
       </button>
     </form>
-    <p>Generating can take up to a minute. Please wait after clicking.</p>
-  {% endif %}
+    <p style="font-size: 13px; margin: 10px 0 0; color: #7f93b8;">Generating can take up to a minute. Please wait after clicking.</p>
+  </div>
+{% endif %}
 
-  {% if days %}
-    <h2>Your itinerary</h2>
-    <p>{{ trip.summary }}</p>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: flex-start;">
+  <!-- Left column: Itinerary & Costs -->
+  <div>
+    {% if days %}
+      <div class="card" style="margin-bottom: 24px;">
+        <h2>Your itinerary</h2>
+        <p style="font-size: 15px; color: var(--text);">{{ trip.summary }}</p>
 
-    {% if trip.budget_warning %}
-      <p><strong>Budget note:</strong> {{ trip.budget_warning }}</p>
+        {% if trip.budget_warning %}
+          <div class="alert alert-error" style="margin-top: 14px;">
+            <p style="margin: 0; color: inherit;"><strong>Budget note:</strong> {{ trip.budget_warning }}</p>
+          </div>
+        {% endif %}
+
+        {% for day in days %}
+          <div class="day-card" style="margin-top: 20px;">
+            <h3 style="margin-top: 0; color: var(--sky);">Day {{ day.day_number }}: {{ day.title }}</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              {% for stop in day.stops.all %}
+                <li class="stop-item">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <strong style="font-size: 15px;">{{ stop.name }}</strong>
+                    <span class="badge" style="font-size: 11px;">
+                      {{ stop.get_time_of_day_display }}, {{ stop.get_category_display }}
+                    </span>
+                  </div>
+                  <div style="color: var(--muted); font-size: 14px; margin-bottom: 6px;">{{ stop.description }}</div>
+                  <div style="font-size: 13px; color: var(--sun); font-weight: 600;">
+                    Estimated cost per person: {{ stop.estimated_cost_per_person }}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <h2>Estimated costs</h2>
+        <p>Per person: {{ cost_per_person|floatformat:2 }}</p>
+        <p>Whole group: {{ group_cost|floatformat:2 }}</p>
+        <p style="font-size: 13px; color: #7f93b8; margin: 0;">These are AI estimates, not exact prices.</p>
+      </div>
+    {% else %}
+      <div class="card" style="text-align: center; padding: 40px 20px; margin-bottom: 24px;">
+        <h3>No itinerary yet.</h3>
+        <p>Click "Generate itinerary" to create a personalized schedule with estimated costs.</p>
+      </div>
     {% endif %}
+  </div>
 
-    {% for day in days %}
-      <h3>Day {{ day.day_number }}: {{ day.title }}</h3>
-      <ul>
-        {% for stop in day.stops.all %}
-          <li>
-            <strong>{{ stop.name }}</strong> ({{ stop.get_time_of_day_display }}, {{ stop.get_category_display }})
-            <br>{{ stop.description }}
-            <br>Estimated cost per person: {{ stop.estimated_cost_per_person }}
+  <!-- Right column: Members & Invites -->
+  <div>
+    <div class="card" style="margin-bottom: 24px;">
+      <h2>Members</h2>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for member in members %}
+          <li class="member-row">
+            <div>
+              <strong style="color: var(--text);">{{ member.user.username }}</strong>
+              <small style="color: var(--muted);">({{ member.role }})</small>
+            </div>
+            {% if is_owner and member.user != request.user %}
+              <form method="post" action="{% url 'remove_member' trip.id member.user.id %}"
+                    style="display:inline; margin: 0;" onsubmit="return confirm('Remove this member?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-small">Remove</button>
+              </form>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
-    {% endfor %}
+    </div>
 
-    <h2>Estimated costs</h2>
-    <p>Per person: {{ cost_per_person|floatformat:2 }}</p>
-    <p>Whole group: {{ group_cost|floatformat:2 }}</p>
-    <p>These are AI estimates, not exact prices.</p>
-  {% else %}
-    <p>No itinerary yet.</p>
-  {% endif %}
+    <div class="card" style="margin-bottom: 24px;">
+      <h2>Invite someone</h2>
+      <p style="font-size: 13px;">Send an invitation link directly to their email.</p>
+      <form method="post" action="{% url 'invite_member' trip.id %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 12px;">
+          <input type="email" name="email" placeholder="friend@example.com" required>
+        </div>
+        <button type="submit" class="btn btn-small" style="width: 100%;">Send invitation</button>
+      </form>
 
-  <h2>Members</h2>
-  <ul>
-    {% for member in members %}
-      <li>
-        {{ member.user.username }} ({{ member.role }})
-        {% if is_owner and member.user != request.user %}
-          <form method="post" action="{% url 'remove_member' trip.id member.user.id %}"
-                style="display:inline" onsubmit="return confirm('Remove this member?');">
-            {% csrf_token %}
-            <button type="submit">Remove</button>
-          </form>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
+      {% if pending_invites %}
+        <h3 style="margin-top: 20px; font-size: 15px;">Pending invitations</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          {% for invite in pending_invites %}
+            <li style="padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); font-size: 13px; margin-bottom: 6px;">
+              {{ invite.email }} <span style="color: var(--muted);">(invited by {{ invite.invited_by.username }})</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
 
-  <h2>Invite someone</h2>
-  <form method="post" action="{% url 'invite_member' trip.id %}">
-    {% csrf_token %}
-    <input type="email" name="email" placeholder="friend@example.com" required>
-    <button type="submit">Send invitation</button>
-  </form>
+    <div class="card" style="margin-bottom: 24px;">
+      <h2>Leave this trip</h2>
+      {% if is_owner %}
+        <p style="font-size: 13px;">You are the owner. If you leave, the member who joined first becomes the owner. If nobody else is in the trip, it will be deleted.</p>
+      {% endif %}
+      <form method="post" action="{% url 'leave_trip' trip.id %}" onsubmit="return confirm('Leave this trip?');" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-small">Leave trip</button>
+      </form>
+    </div>
+  </div>
+</div>
 
-  {% if pending_invites %}
-    <h3>Pending invitations</h3>
-    <ul>
-      {% for invite in pending_invites %}
-        <li>{{ invite.email }} (invited by {{ invite.invited_by.username }})</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  <h2>Leave this trip</h2>
-  {% if is_owner %}
-    <p>You are the owner. If you leave, the member who joined first becomes the owner. If nobody else is in the trip, it will be deleted.</p>
-  {% endif %}
-  <form method="post" action="{% url 'leave_trip' trip.id %}" onsubmit="return confirm('Leave this trip?');">
-    {% csrf_token %}
-    <button type="submit">Leave trip</button>
-  </form>
-
-  <p><a href="{% url 'my_trips' %}">Back to my trips</a></p>
-
-  {% include 'chatbot/widget.html' %}
-</body>
-</html>
+<div style="margin-top: 24px;">
+  <a href="{% url 'my_trips' %}" class="btn btn-secondary btn-small">Back to my trips</a>
+</div>
+{% endblock %}

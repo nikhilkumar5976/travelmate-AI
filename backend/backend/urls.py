@@ -7,8 +7,8 @@ from django.urls import include, path
 from accounts import views as account_views
 
 urlpatterns = [
+    path('', account_views.landing, name='landing'),
     path('admin/', admin.site.urls),
-    path('', account_views.home, name='root'),
     path('home/', account_views.home, name='home'),
     path('signup/', account_views.signup, name='signup'),
     path('login/', auth_views.LoginView.as_view(
@@ -19,5 +19,6 @@ urlpatterns = [
     path('profile/edit/', account_views.edit_profile, name='edit_profile'),
     path('trips/', include('trips.urls')),
     path('chat/', include('chat.urls')),
+    path('places/', include('places.urls')),
     path('ai/', include('ai.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,40 +1,58 @@
-<!DOCTYPE html>
-<html>
-<head><title>Trip invitation - TravelMate AI</title></head>
-<body>
-  <h1>Trip invitation</h1>
+{% extends 'base.html' %}
 
-  {% for message in messages %}
-    <p>{{ message }}</p>
-  {% endfor %}
+{% block title %}Trip invitation - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
 
-  <p>{{ invitation.invited_by.username }} invited you to a {{ trip.num_days }}-day trip to {{ trip.destination }}.</p>
+{% block content %}
+<div class="card" style="text-align: center; padding: 36px 28px;">
+  <span class="badge badge-sun" style="margin-bottom: 14px;">Trip invitation</span>
+  <h1 style="margin-bottom: 12px;">You're invited!</h1>
+
+  <p style="font-size: 16px; color: var(--text); margin-bottom: 24px;">
+    <strong>{{ invitation.invited_by.username }}</strong> invited you to a {{ trip.num_days }}-day trip to <strong>{{ trip.destination }}</strong>.
+  </p>
 
   {% if state == 'closed' %}
-    <p>This invitation was already {{ invitation.get_status_display|lower }}.</p>
-    <p><a href="{% url 'home' %}">Go to home</a></p>
+    <div class="alert alert-info">
+      <p style="margin: 0; color: inherit;">This invitation was already {{ invitation.get_status_display|lower }}.</p>
+    </div>
+    <div style="margin-top: 20px;">
+      <a href="{% url 'home' %}" class="btn">Go to home</a>
+    </div>
 
   {% elif state == 'anonymous' %}
-    <p>This invitation was sent to <strong>{{ invitation.email }}</strong>. Sign up or log in with that email to continue.</p>
-    <p>
-      <a href="{% url 'signup' %}?next={{ request.path|urlencode }}">Sign up</a> |
-      <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in</a>
-    </p>
+    <div class="alert alert-info" style="text-align: left;">
+      <p style="margin: 0; color: inherit;">
+        This invitation was sent to <strong>{{ invitation.email }}</strong>. Sign up or log in with that email to continue.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+      <a href="{% url 'signup' %}?next={{ request.path|urlencode }}" class="btn">Sign up</a>
+      <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="btn btn-secondary">Log in</a>
+    </div>
 
   {% elif state == 'wrong_account' %}
-    <p>This invitation was sent to <strong>{{ invitation.email }}</strong>, but you are logged in with a different email.</p>
-    <p>Log out, then sign up or log in with {{ invitation.email }} and open the link again.</p>
-    <form method="post" action="{% url 'logout' %}">
+    <div class="alert alert-error" style="text-align: left;">
+      <p style="margin: 0 0 6px; color: inherit;">
+        This invitation was sent to <strong>{{ invitation.email }}</strong>, but you are logged in with a different email.
+      </p>
+      <p style="margin: 0; font-size: 13px; color: inherit;">
+        Log out, then sign up or log in with {{ invitation.email }} and open the link again.
+      </p>
+    </div>
+    <form method="post" action="{% url 'logout' %}" style="margin-top: 20px;">
       {% csrf_token %}
-      <button type="submit">Log out</button>
+      <button type="submit" class="btn btn-danger">Log out</button>
     </form>
 
   {% else %}
-    <form method="post" action="{% url 'respond_invitation' invitation.token %}">
+    <form method="post" action="{% url 'respond_invitation' invitation.token %}" style="margin-top: 20px;">
       {% csrf_token %}
-      <button type="submit" name="action" value="accept">Accept</button>
-      <button type="submit" name="action" value="reject">Reject</button>
+      <div style="display: flex; gap: 14px; justify-content: center;">
+        <button type="submit" name="action" value="accept" class="btn" style="flex: 1;">Accept</button>
+        <button type="submit" name="action" value="reject" class="btn btn-danger" style="flex: 1;">Reject</button>
+      </div>
     </form>
   {% endif %}
-</body>
-</html>
+</div>
+{% endblock %}

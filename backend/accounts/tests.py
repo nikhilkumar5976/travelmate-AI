@@ -12,23 +12,30 @@ class AccountsReadTests(TestCase):
         )
         self.profile = Profile.objects.create(user=self.user, phone='1234567890')
 
-    def test_root_redirects_unauthenticated(self):
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/login/', response.url)
-
-    def test_root_authenticated(self):
-        self.client.force_login(self.user)
+    def test_landing_unauthenticated(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
-        self.assertContains(response, 'Welcome, alice!')
+        self.assertTemplateUsed(response, 'landing.html')
+        self.assertContains(response, 'Plan your next trip')
+
+    def test_landing_authenticated(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('home'))
+
+    def test_home_unauthenticated(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
 
     def test_home_authenticated(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home.html')
+        self.assertContains(response, 'Welcome, alice!')
+        self.assertContains(response, reverse('explore'))
 
     def test_signup_get(self):
         response = self.client.get(reverse('signup'))

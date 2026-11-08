@@ -1,15 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head><title>Create trip - TravelMate AI</title></head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Create trip - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Style interest checkboxes as clean grid */
+  ul#id_interests {
+    list-style: none; padding: 0; margin: 8px 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;
+  }
+  ul#id_interests li label {
+    display: flex; align-items: center; gap: 8px; margin: 0;
+    padding: 8px 12px; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--navy-border);
+    cursor: pointer; font-size: 13px; color: var(--text); font-weight: 500;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  ul#id_interests li label:hover {
+    background: rgba(255, 255, 255, 0.1); border-color: var(--sky);
+  }
+  ul#id_interests input[type="checkbox"] {
+    width: auto; margin: 0; accent-color: var(--sun);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
   <h1>Plan a new trip</h1>
+  <p>Where are you headed? Tell us a few details and AI will generate an itinerary.</p>
+
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Create trip</button>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
+      <button type="submit" class="btn">Create trip</button>
+      <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
+    </div>
   </form>
-  <p><a href="{% url 'home' %}">Back to home</a></p>
-
-  {% include 'chatbot/widget.html' %}
-</body>
-</html>
+</div>
+{% endblock %}

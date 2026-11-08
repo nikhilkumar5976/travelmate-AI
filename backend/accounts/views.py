@@ -48,3 +48,8 @@ def edit_profile(request):
     else:
         form = EditProfileForm(instance=profile)
     return render(request, 'accounts/edit_profile.html', {'form': form, 'profile': profile})
+
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'landing.html')

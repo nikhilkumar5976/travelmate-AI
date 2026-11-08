@@ -1,25 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head><title>Edit profile - TravelMate AI</title></head>
-<body>
-  <h1>Edit profile</h1>
+{% extends 'base.html' %}
 
-  {% for message in messages %}
-    <p>{{ message }}</p>
-  {% endfor %}
+{% block title %}Edit profile - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Edit profile</h1>
+  <p>Update your photo and contact info so friends can identify you on trips.</p>
 
   {% if profile.photo %}
-    <img src="{{ profile.photo.url }}" alt="Your photo" width="120">
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 14px;">
+      <img src="{{ profile.photo.url }}" alt="Your photo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--sun);">
+      <div>
+        <p style="margin: 0; font-weight: 700; color: var(--text);">{{ user.username }}</p>
+        <span class="badge badge-sun" style="margin-top: 4px;">Photo uploaded</span>
+      </div>
+    </div>
   {% endif %}
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Save profile</button>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 20px;">
+      <button type="submit" class="btn">Save profile</button>
+      <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
+    </div>
   </form>
-
-  <p><a href="{% url 'home' %}">Back to home</a></p>
-
-  {% include 'chatbot/widget.html' %}
-</body>
-</html>
+</div>
+{% endblock %}
