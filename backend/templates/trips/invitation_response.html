@@ -4,51 +4,56 @@
 {% block container_class %}container-narrow{% endblock %}
 
 {% block content %}
-<div class="card" style="text-align: center; padding: 40px 24px;">
+<div class="card" style="text-align: center; padding: 44px 32px; margin-top: 20px;">
   {% if state == 'accepted' %}
+    <div style="width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 18px; display: grid; place-items: center; color: #34d399; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.3);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
     <span class="badge badge-sun" style="margin-bottom: 16px;">Invitation Accepted</span>
-    <h1 style="color: var(--text); margin-bottom: 12px;">You're going to {{ trip.destination }}!</h1>
-    <p style="font-size: 15px; margin-bottom: 24px;">
-      {{ message|default:"You have joined the trip. Start chatting with your travel crew and exploring your itinerary!" }}
+    <h1 style="margin-bottom: 12px; font-size: 28px;">You're going to <span class="grad">{{ trip.destination }}!</span></h1>
+    <p style="font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5;">
+      {{ message|default:"You have joined the trip. Start chatting with your travel crew and explore your itinerary!" }}
     </p>
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-      <a href="{% url 'trip_detail' trip.id %}" class="btn">View trip details</a>
+    <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'trip_detail' trip.id %}" class="btn">View trip details &rarr;</a>
       <a href="{% url 'trip_chat' trip.id %}" class="btn btn-sky">Open group chat</a>
     </div>
 
   {% elif state == 'rejected' %}
-    <span class="badge badge-danger" style="margin-bottom: 16px;">Invitation Rejected</span>
-    <h1 style="color: var(--text); margin-bottom: 12px;">Invitation Declined</h1>
-    <p style="font-size: 15px; margin-bottom: 24px;">
+    <div style="width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 18px; display: grid; place-items: center; color: #f87171; background: rgba(248, 113, 113, 0.12); border: 1px solid rgba(248, 113, 113, 0.3);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </div>
+    <span class="badge badge-danger" style="margin-bottom: 16px;">Invitation Declined</span>
+    <h1 style="margin-bottom: 12px; font-size: 28px;">Invitation Declined</h1>
+    <p style="font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5;">
       {{ message|default:"You have declined the invitation to join the trip." }}
     </p>
-    <div style="display: flex; gap: 12px; justify-content: center;">
+    <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
       <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
       <a href="{% url 'explore' %}" class="btn btn-sky">Explore places</a>
     </div>
 
   {% elif state == 'wrong_account' %}
     <span class="badge badge-danger" style="margin-bottom: 16px;">Different Account</span>
-    <h1 style="color: var(--text); margin-bottom: 12px;">Email Mismatch</h1>
-    <p style="font-size: 15px; margin-bottom: 24px;">
-      This invitation was sent to <strong>{{ invitation.email }}</strong>, but you are currently signed in as <strong>{{ request.user.email|default:request.user.username }}</strong>.
+    <h1 style="margin-bottom: 12px; font-size: 28px;">Email Mismatch</h1>
+    <p style="font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5;">
+      This invitation was sent to <strong style="color: var(--text);">{{ invitation.email }}</strong>, but you are currently signed in as <strong style="color: var(--text);">{{ request.user.email|default:request.user.username }}</strong>.
     </p>
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}
-      <button type="submit" class="btn btn-danger">Log out and switch account</button>
+      <button type="submit" class="btn btn-danger" style="width: 100%;">Log out and switch account</button>
     </form>
 
   {% else %}
     <span class="badge" style="margin-bottom: 16px;">Trip Invitation</span>
-    <h1 style="color: var(--text); margin-bottom: 12px;">{{ trip.destination }}</h1>
-    <p style="font-size: 15px; margin-bottom: 24px;">
+    <h1 style="margin-bottom: 12px; font-size: 28px;">{{ trip.destination }}</h1>
+    <p style="font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5;">
       {{ invitation.invited_by.username }} invited you to join a {{ trip.num_days }}-day trip to {{ trip.destination }}.
     </p>
-    <div style="display: flex; gap: 12px; justify-content: center;">
-      <a href="{% url 'accept_invitation' invitation.token %}" class="btn">Accept</a>
-      <a href="{% url 'reject_invitation' invitation.token %}" class="btn btn-danger">Decline</a>
+    <div style="display: flex; gap: 14px; justify-content: center;">
+      <a href="{% url 'accept_invitation' invitation.token %}" class="btn" style="flex: 1;">Accept</a>
+      <a href="{% url 'reject_invitation' invitation.token %}" class="btn btn-danger" style="flex: 1;">Decline</a>
     </div>
   {% endif %}
 </div>
 {% endblock %}
-

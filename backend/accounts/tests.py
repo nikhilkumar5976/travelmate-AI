@@ -16,7 +16,7 @@ class AccountsReadTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'landing.html')
-        self.assertContains(response, 'Plan your next trip')
+        self.assertContains(response, 'Plan trips together')
 
     def test_landing_authenticated(self):
         self.client.force_login(self.user)

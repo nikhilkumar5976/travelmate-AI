@@ -4,16 +4,19 @@
 {% block container_class %}container-narrow{% endblock %}
 
 {% block content %}
-<div class="card">
-  <h1>Edit profile</h1>
-  <p>Update your photo and contact info so friends can identify you on trips.</p>
+<div class="card" style="padding: 36px 32px;">
+  <span class="eyebrow" style="margin-bottom: 14px;"><i></i>Account settings</span>
+  <h1 style="font-size: 28px; margin-bottom: 8px;">Edit <span class="grad">profile</span></h1>
+  <p style="margin-bottom: 24px; color: var(--muted); font-size: 15px;">
+    Update your avatar and phone number so your friends can easily identify you on group trips.
+  </p>
 
   {% if profile.photo %}
-    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 14px;">
-      <img src="{{ profile.photo.url }}" alt="Your photo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--sun);">
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 18px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 16px;">
+      <img src="{{ profile.photo.url }}" alt="Your photo" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--sky);">
       <div>
-        <p style="margin: 0; font-weight: 700; color: var(--text);">{{ user.username }}</p>
-        <span class="badge badge-sun" style="margin-top: 4px;">Photo uploaded</span>
+        <p style="margin: 0; font-weight: 700; font-size: 16px; color: var(--text);">{{ user.username }}</p>
+        <span class="badge badge-sun" style="margin-top: 6px;">Photo uploaded</span>
       </div>
     </div>
   {% endif %}
@@ -21,8 +24,8 @@
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <div style="display: flex; gap: 12px; align-items: center; margin-top: 20px;">
-      <button type="submit" class="btn">Save profile</button>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px; flex-wrap: wrap;">
+      <button type="submit" class="btn">Save profile &rarr;</button>
       <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
     </div>
   </form>

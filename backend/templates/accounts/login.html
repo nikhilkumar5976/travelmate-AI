@@ -4,19 +4,26 @@
 {% block container_class %}container-narrow{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-top: 20px;">
-  <h1 style="text-align: center; margin-bottom: 6px;">Welcome back</h1>
-  <p style="text-align: center; margin-bottom: 24px;">Log in to plan your trips with friends.</p>
+<div class="card" style="margin-top: 24px; padding: 36px 32px;">
+  <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+    <span class="brand-mark" style="width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);"></span>
+  </div>
+  <h1 style="text-align: center; margin-bottom: 8px; font-size: 28px;">Welcome <span class="grad">back</span></h1>
+  <p style="text-align: center; margin-bottom: 28px; font-size: 15px; color: var(--muted);">
+    Log in to manage your itineraries and plan with friends.
+  </p>
 
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Log in</button>
+    <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 13px 24px; font-size: 15px;">
+      Log in &rarr;
+    </button>
   </form>
 
-  <p style="text-align: center; margin-top: 24px; margin-bottom: 0;">
-    New here?
-    <a href="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600;">
+  <p style="text-align: center; margin-top: 28px; margin-bottom: 0; font-size: 14px;">
+    New to TravelMate?
+    <a href="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600; text-decoration: underline;">
       Create an account
     </a>
   </p>

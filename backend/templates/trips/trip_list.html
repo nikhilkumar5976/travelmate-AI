@@ -3,30 +3,44 @@
 {% block title %}My Trips - TravelMate AI{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-  <h1>My Trips</h1>
-  <div style="display: flex; gap: 10px;">
-    <a href="{% url 'create_trip' %}" class="btn btn-small">Plan a new trip</a>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+  <div>
+    <span class="eyebrow" style="margin-bottom: 12px;"><i></i>All Trips</span>
+    <h1 style="margin: 0 0 6px; font-size: clamp(28px, 3.8vw, 40px);">My <span class="grad">Trips</span></h1>
+    <p style="margin: 0; font-size: 15px; color: var(--muted);">Explore all your scheduled journeys and itineraries.</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <a href="{% url 'create_trip' %}" class="btn">+ Plan a new trip</a>
     <a href="{% url 'home' %}" class="btn btn-secondary btn-small">Back to home</a>
   </div>
 </div>
 
 {% if trips %}
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
     {% for trip in trips %}
-      <div class="card">
-        <h3 style="margin-top: 0;">
-          <a href="{% url 'trip_detail' trip.id %}" style="color: inherit;">{{ trip.destination }}</a>
-        </h3>
-        <p>{{ trip.num_days }} days - Budget: ${{ trip.budget }}</p>
-        <a href="{% url 'trip_detail' trip.id %}" class="btn btn-secondary btn-small">View trip</a>
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 26px;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="badge badge-sun">{{ trip.destination }}</span>
+            <span class="badge badge-muted">{{ trip.num_days }} day{{ trip.num_days|pluralize }}</span>
+          </div>
+          <h3 style="margin: 0 0 8px; font-size: 20px;">
+            <a href="{% url 'trip_detail' trip.id %}" style="color: inherit;">{{ trip.destination }}</a>
+          </h3>
+          <p style="margin-bottom: 18px; color: var(--muted); font-size: 14px;">
+            Budget: <strong style="color: var(--sun);">${{ trip.budget }}</strong>
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'trip_detail' trip.id %}" class="btn btn-secondary btn-small" style="width: 100%; text-align: center;">View trip &rarr;</a>
+        </div>
       </div>
     {% endfor %}
   </div>
 {% else %}
-  <div class="card" style="text-align: center; padding: 40px 20px;">
-    <p>No trips found.</p>
-    <a href="{% url 'create_trip' %}" class="btn">Create one now!</a>
+  <div class="card" style="text-align: center; padding: 56px 24px; max-width: 600px; margin: 0 auto;">
+    <p style="font-size: 16px; margin-bottom: 20px; color: var(--muted);">No trips found.</p>
+    <a href="{% url 'create_trip' %}" class="btn">Create one now &rarr;</a>
   </div>
 {% endif %}
 {% endblock %}

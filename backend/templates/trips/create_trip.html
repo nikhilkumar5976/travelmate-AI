@@ -5,37 +5,42 @@
 
 {% block extra_head %}
 <style>
-  /* Style interest checkboxes as clean grid */
+  /* Style interest checkboxes as clean glass tiles */
   ul#id_interests {
-    list-style: none; padding: 0; margin: 8px 0;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;
+    list-style: none; padding: 0; margin: 10px 0 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;
   }
   ul#id_interests li label {
-    display: flex; align-items: center; gap: 8px; margin: 0;
-    padding: 8px 12px; border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--navy-border);
+    display: flex; align-items: center; gap: 10px; margin: 0;
+    padding: 10px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line);
     cursor: pointer; font-size: 13px; color: var(--text); font-weight: 500;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
   }
   ul#id_interests li label:hover {
-    background: rgba(255, 255, 255, 0.1); border-color: var(--sky);
+    background: rgba(56, 189, 248, 0.08); border-color: var(--sky);
+    transform: translateY(-1px);
   }
   ul#id_interests input[type="checkbox"] {
-    width: auto; margin: 0; accent-color: var(--sun);
+    width: 16px; height: 16px; margin: 0; accent-color: var(--sky);
+    cursor: pointer;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-  <h1>Plan a new trip</h1>
-  <p>Where are you headed? Tell us a few details and AI will generate an itinerary.</p>
+<div class="card" style="padding: 36px 32px;">
+  <span class="eyebrow" style="margin-bottom: 14px;"><i></i>AI Trip Builder</span>
+  <h1 style="font-size: 28px; margin-bottom: 8px;">Plan a new <span class="grad">journey</span></h1>
+  <p style="margin-bottom: 26px; color: var(--muted); font-size: 15px;">
+    Where are you headed? Tell us a few details and let AI design your custom day-by-day plan.
+  </p>
 
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
-      <button type="submit" class="btn">Create trip</button>
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 28px; flex-wrap: wrap;">
+      <button type="submit" class="btn">Create trip &rarr;</button>
       <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
     </div>
   </form>
