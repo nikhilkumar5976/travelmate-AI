@@ -26,7 +26,7 @@ def trip_chat(request, trip_id):
 
     latest = (
         ChatMessage.objects.filter(trip=trip)
-        .select_related('sender__profile')
+        .select_related('sender', 'sender__profile')
         .order_by('-created_at')[:100]
     )
     chat_messages = list(latest)[::-1]

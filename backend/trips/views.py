@@ -1,6 +1,7 @@
 import logging
 from django.db import transaction
-
+from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -47,7 +48,7 @@ def trip_detail(request, trip_id):
         Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).select_related('owner').distinct(),
         id=trip_id
     )
-    members = list(trip.members.select_related('user'))
+    members = list(trip.members.select_related('user', 'user__profile'))
     member_count = len(members)
     days = trip.days.prefetch_related('stops')
 
@@ -84,6 +85,9 @@ def generate_itinerary_view(request, trip_id):
     return redirect('trip_detail', trip_id=trip.id)
 
 
+INVITES_PER_HOUR = 20
+
+
 @login_required
 @require_POST
 def invite_member(request, trip_id):
@@ -94,11 +98,18 @@ def invite_member(request, trip_id):
             messages.error(request, error)
         return redirect('trip_detail', trip_id=trip.id)
 
+    key = f'invite-count:{request.user.id}'
+    cache.add(key, 0, timeout=3600)
+    if cache.incr(key) > INVITES_PER_HOUR:
+        messages.error(request, 'You have sent too many invitations. Please try again later.')
+        return redirect('trip_detail', trip_id=trip.id)
+
     invitation = Invitation.objects.create(
         trip=trip,
         email=form.cleaned_data['email'],
         invited_by=request.user,
     )
+
     try:
         send_invitation_email(invitation, request=request)
     except Exception:
@@ -109,7 +120,6 @@ def invite_member(request, trip_id):
 
     messages.success(request, f'Invitation sent to {invitation.email}.')
     return redirect('trip_detail', trip_id=trip.id)
-
 
 def accept_invitation(request, token):
     invitation = get_object_or_404(
@@ -155,12 +165,13 @@ def accept_invitation(request, token):
         messages.warning(request, 'Please complete your profile to join this trip.')
         return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.get_full_path()})}")
 
-    TripMember.objects.get_or_create(
-        trip=invitation.trip, user=request.user, defaults={'role': 'member'}
-    )
-    invitation.status = 'accepted'
-    invitation.responded_at = timezone.now()
-    invitation.save()
+    with transaction.atomic():
+        TripMember.objects.get_or_create(
+            trip=invitation.trip, user=request.user, defaults={'role': 'member'}
+        )
+        invitation.status = 'accepted'
+        invitation.responded_at = timezone.now()
+        invitation.save(update_fields=['status', 'responded_at'])
 
     messages.success(request, f'You successfully joined the trip to {invitation.trip.destination}!')
     return render(request, 'trips/invitation_response.html', {
@@ -183,7 +194,7 @@ def reject_invitation(request, token):
             'state': 'accepted',
             'invitation': invitation,
             'trip': invitation.trip,
-            'message': f'This invitation was already accepted and cannot be declined.',
+            'message': 'This invitation was already accepted and cannot be declined.',
         })
 
     if invitation.status == 'rejected':
@@ -194,9 +205,10 @@ def reject_invitation(request, token):
             'message': 'This invitation has already been declined.',
         })
 
-    invitation.status = 'rejected'
-    invitation.responded_at = timezone.now()
-    invitation.save()
+    with transaction.atomic():
+        invitation.status = 'rejected'
+        invitation.responded_at = timezone.now()
+        invitation.save(update_fields=['status', 'responded_at'])
 
     messages.info(request, f'You have declined the invitation to join the trip to {invitation.trip.destination}.')
     return render(request, 'trips/invitation_response.html', {
@@ -266,6 +278,7 @@ def my_trips(request):
     memberships = (
         TripMember.objects.filter(user=request.user)
         .select_related('trip', 'trip__owner')
+        .prefetch_related('trip__members')
         .order_by('-trip__created_at')
     )
     return render(request, 'trips/my_trips.html', {'memberships': memberships})

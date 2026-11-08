@@ -13,7 +13,7 @@ def explore(request):
     if city:
         places = places.filter(city__iexact=city)
     if category:
-        places = places.filter(category=category)
+        places = places.filter(category__iexact=category)
 
     cities = (
         Place.objects.filter(is_active=True)
