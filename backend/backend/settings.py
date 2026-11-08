@@ -17,14 +17,11 @@ load_dotenv(BASE_DIR / '.env')
 # Core
 # ---------------------------------------------------------------------------
 
-# For local development the fallback key is fine. Before putting the site
-# online, set DJANGO_SECRET_KEY in .env to a long random value.
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
     'django-insecure-@yt3agemx4a1o&9yq_uu$x$esv8zjv$z8^2^*%r^nxh(it-0)2',
 )
 
-# DEBUG must be False when the site is online. Set DEBUG=False in .env then.
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 env_hosts = os.environ.get('ALLOWED_HOSTS', '').strip()
@@ -95,6 +92,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # ---------------------------------------------------------------------------
@@ -186,9 +184,7 @@ TRIP_CURRENCY = 'INR'
 # Email configuration
 # ---------------------------------------------------------------------------
 
-# Support both EMAIL_HOST_USER and EMAIL_USER
 EMAIL_HOST_USER = (os.environ.get('EMAIL_HOST_USER') or os.environ.get('EMAIL_USER') or '').strip()
-# Support both EMAIL_HOST_PASSWORD and EMAIL_APP_PASSWORD, stripping spaces
 raw_password = os.environ.get('EMAIL_HOST_PASSWORD') or os.environ.get('EMAIL_APP_PASSWORD') or ''
 EMAIL_HOST_PASSWORD = raw_password.replace(' ', '')
 

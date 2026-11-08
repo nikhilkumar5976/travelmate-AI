@@ -55,3 +55,25 @@ class ChatReadTests(TestCase):
         self.client.force_login(self.stranger)
         response = self.client.get(reverse('trip_chat', args=[self.trip.id]))
         self.assertEqual(response.status_code, 404)
+
+    def test_chat_messages_api_member(self):
+        self.client.force_login(self.user2)
+        response = self.client.get(reverse('chat_messages_api', args=[self.trip.id]))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('messages', data)
+        self.assertEqual(len(data['messages']), 1)
+        self.assertEqual(data['messages'][0]['text'], 'Looking forward to Kyoto!')
+
+    def test_chat_ajax_post_send(self):
+        self.client.force_login(self.user2)
+        response = self.client.post(
+            reverse('trip_chat', args=[self.trip.id]),
+            data={'text': 'Can we visit Fushimi Inari?'},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['text'], 'Can we visit Fushimi Inari?')
+        self.assertEqual(data['sender'], 'bob')
+        self.assertTrue(ChatMessage.objects.filter(text='Can we visit Fushimi Inari?').exists())
