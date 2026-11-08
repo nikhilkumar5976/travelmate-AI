@@ -66,3 +66,4 @@ def send_invitation_email(invitation, request=None):
     email.attach_alternative(html_content, "text/html")
     email.send(fail_silently=False)
     return True
+
