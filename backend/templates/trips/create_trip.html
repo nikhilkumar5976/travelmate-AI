@@ -1,31 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Create trip - TravelMate AI{% endblock %}
 {% block container_class %}container-narrow{% endblock %}
 
 {% block extra_head %}
-<style>
-  /* Style interest checkboxes as clean glass tiles */
-  ul#id_interests {
-    list-style: none; padding: 0; margin: 10px 0 16px;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;
-  }
-  ul#id_interests li label {
-    display: flex; align-items: center; gap: 10px; margin: 0;
-    padding: 10px 14px; border-radius: 12px;
-    background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line);
-    cursor: pointer; font-size: 13px; color: var(--text); font-weight: 500;
-    transition: background 0.2s, border-color 0.2s, transform 0.2s;
-  }
-  ul#id_interests li label:hover {
-    background: rgba(56, 189, 248, 0.08); border-color: var(--sky);
-    transform: translateY(-1px);
-  }
-  ul#id_interests input[type="checkbox"] {
-    width: 16px; height: 16px; margin: 0; accent-color: var(--sky);
-    cursor: pointer;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/trips.css' %}">
 {% endblock %}
 
 {% block content %}

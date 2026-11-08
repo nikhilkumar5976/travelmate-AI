@@ -1,87 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ trip.destination }} - TravelMate AI{% endblock %}
 
 {% block extra_head %}
-<style>
-  .detail-hero {
-    background: rgba(13, 18, 36, 0.75);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    padding: 32px;
-    margin-bottom: 28px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 20px;
-    backdrop-filter: blur(14px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-  }
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-  .stat-box {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
-    transition: border-color 0.2s;
-  }
-  .stat-box:hover {
-    border-color: rgba(125, 211, 252, 0.3);
-  }
-  .stat-box small {
-    display: block;
-    color: var(--sky);
-    font-size: 11px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-family: var(--display);
-  }
-  .stat-box strong {
-    font-size: 16px;
-    color: var(--text);
-    font-weight: 600;
-    display: block;
-    line-height: 1.4;
-  }
-  .day-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .stop-item {
-    padding: 16px 18px;
-    margin: 12px 0;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .stop-item:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(125, 211, 252, 0.25);
-  }
-  .member-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    margin-bottom: 10px;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/trips.css' %}">
 {% endblock %}
 
 {% block content %}
