@@ -1,11 +1,14 @@
+import uuid
 from decimal import Decimal
 
+from django.core import mail
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Profile
 from itinerary.models import Day, Stop
+from trips.emails import send_invitation_email
 from trips.models import Trip, TripMember, Invitation
 
 
@@ -96,6 +99,29 @@ class TripsReadTests(TestCase):
         response = self.client.get(reverse('trip_detail', args=[self.trip.id]))
         self.assertEqual(response.status_code, 404)
 
+    def test_invitation_model_uuid_token(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='newguest@example.com',
+            invited_by=self.owner,
+        )
+        self.assertIsInstance(invite.token, uuid.UUID)
+        self.assertEqual(invite.status, 'pending')
+
+    def test_send_invitation_email(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='guest@example.com',
+            invited_by=self.owner,
+        )
+        sent = send_invitation_email(invite)
+        self.assertTrue(sent)
+        self.assertEqual(len(mail.outbox), 1)
+        sent_mail = mail.outbox[0]
+        self.assertIn('guest@example.com', sent_mail.to)
+        self.assertIn(f'/trips/invitations/{invite.token}/accept/', sent_mail.body)
+        self.assertIn(f'/trips/invitations/{invite.token}/reject/', sent_mail.body)
+
     def test_invitation_detail_anonymous(self):
         invite = Invitation.objects.create(
             trip=self.trip,
@@ -142,3 +168,83 @@ class TripsReadTests(TestCase):
         response = self.client.get(reverse('invitation', args=[invite.token]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['state'], 'closed')
+
+    def test_accept_invitation_unauthenticated(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='charlie@example.com',
+            invited_by=self.owner,
+        )
+        response = self.client.get(reverse('accept_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+
+    def test_accept_invitation_wrong_email(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='someoneelse@example.com',
+            invited_by=self.owner,
+        )
+        self.client.force_login(self.stranger)  # charlie@example.com
+        response = self.client.get(reverse('accept_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'trips/invitation_response.html')
+        self.assertEqual(response.context['state'], 'wrong_account')
+
+    def test_accept_invitation_success(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email=self.stranger.email,
+            invited_by=self.owner,
+        )
+        Profile.objects.create(
+            user=self.stranger, phone='1112223333', photo='profile_photos/c.jpg'
+        )
+        self.client.force_login(self.stranger)
+        response = self.client.get(reverse('accept_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'trips/invitation_response.html')
+        self.assertEqual(response.context['state'], 'accepted')
+
+        invite.refresh_from_db()
+        self.assertEqual(invite.status, 'accepted')
+        self.assertIsNotNone(invite.responded_at)
+        self.assertTrue(TripMember.objects.filter(trip=self.trip, user=self.stranger).exists())
+
+    def test_accept_invitation_already_accepted(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email=self.stranger.email,
+            invited_by=self.owner,
+            status='accepted',
+        )
+        self.client.force_login(self.stranger)
+        response = self.client.get(reverse('accept_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['state'], 'accepted')
+
+    def test_reject_invitation_success(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='guest@example.com',
+            invited_by=self.owner,
+        )
+        response = self.client.get(reverse('reject_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'trips/invitation_response.html')
+        self.assertEqual(response.context['state'], 'rejected')
+
+        invite.refresh_from_db()
+        self.assertEqual(invite.status, 'rejected')
+        self.assertIsNotNone(invite.responded_at)
+
+    def test_reject_invitation_already_rejected(self):
+        invite = Invitation.objects.create(
+            trip=self.trip,
+            email='guest@example.com',
+            invited_by=self.owner,
+            status='rejected',
+        )
+        response = self.client.get(reverse('reject_invitation', args=[invite.token]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['state'], 'rejected')

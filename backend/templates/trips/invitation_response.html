@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Trip Invitation Status - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 40px 24px;">
+  {% if state == 'accepted' %}
+    <span class="badge badge-sun" style="margin-bottom: 16px;">Invitation Accepted</span>
+    <h1 style="color: var(--text); margin-bottom: 12px;">You're going to {{ trip.destination }}!</h1>
+    <p style="font-size: 15px; margin-bottom: 24px;">
+      {{ message|default:"You have joined the trip. Start chatting with your travel crew and exploring your itinerary!" }}
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'trip_detail' trip.id %}" class="btn">View trip details</a>
+      <a href="{% url 'trip_chat' trip.id %}" class="btn btn-sky">Open group chat</a>
+    </div>
+
+  {% elif state == 'rejected' %}
+    <span class="badge badge-danger" style="margin-bottom: 16px;">Invitation Rejected</span>
+    <h1 style="color: var(--text); margin-bottom: 12px;">Invitation Declined</h1>
+    <p style="font-size: 15px; margin-bottom: 24px;">
+      {{ message|default:"You have declined the invitation to join the trip." }}
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="{% url 'home' %}" class="btn btn-secondary">Back to home</a>
+      <a href="{% url 'explore' %}" class="btn btn-sky">Explore places</a>
+    </div>
+
+  {% elif state == 'wrong_account' %}
+    <span class="badge badge-danger" style="margin-bottom: 16px;">Different Account</span>
+    <h1 style="color: var(--text); margin-bottom: 12px;">Email Mismatch</h1>
+    <p style="font-size: 15px; margin-bottom: 24px;">
+      This invitation was sent to <strong>{{ invitation.email }}</strong>, but you are currently signed in as <strong>{{ request.user.email|default:request.user.username }}</strong>.
+    </p>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Log out and switch account</button>
+    </form>
+
+  {% else %}
+    <span class="badge" style="margin-bottom: 16px;">Trip Invitation</span>
+    <h1 style="color: var(--text); margin-bottom: 12px;">{{ trip.destination }}</h1>
+    <p style="font-size: 15px; margin-bottom: 24px;">
+      {{ invitation.invited_by.username }} invited you to join a {{ trip.num_days }}-day trip to {{ trip.destination }}.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="{% url 'accept_invitation' invitation.token %}" class="btn">Accept</a>
+      <a href="{% url 'reject_invitation' invitation.token %}" class="btn btn-danger">Decline</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

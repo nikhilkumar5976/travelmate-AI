@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 from accounts.models import Profile
 from ai.services import generate_itinerary, ItineraryError
 from itinerary.models import Stop
+from .emails import send_invitation_email
 from .forms import TripForm, InviteForm
 from .models import Trip, TripMember, Invitation
 
@@ -98,20 +99,8 @@ def invite_member(request, trip_id):
         email=form.cleaned_data['email'],
         invited_by=request.user,
     )
-    link = request.build_absolute_uri(reverse('invitation', args=[invitation.token]))
     try:
-        send_mail(
-            subject=f'{request.user.username} invited you to a trip on TravelMate AI',
-            message=(
-                f'Hi!\n\n'
-                f'{request.user.username} invited you to join a trip to {trip.destination} '
-                f'on TravelMate AI.\n\n'
-                f'Open this link to accept or reject the invitation:\n{link}\n\n'
-                f"If you didn't expect this, you can ignore this email.\n"
-            ),
-            from_email=None,
-            recipient_list=[invitation.email],
-        )
+        send_invitation_email(invitation, request=request)
     except Exception:
         logger.exception('Could not send invitation email')
         invitation.delete()
@@ -120,6 +109,102 @@ def invite_member(request, trip_id):
 
     messages.success(request, f'Invitation sent to {invitation.email}.')
     return redirect('trip_detail', trip_id=trip.id)
+
+
+def accept_invitation(request, token):
+    invitation = get_object_or_404(
+        Invitation.objects.select_related('trip', 'invited_by'),
+        token=token,
+    )
+
+    if invitation.status == 'accepted':
+        messages.info(request, 'This invitation has already been accepted.')
+        return render(request, 'trips/invitation_response.html', {
+            'state': 'accepted',
+            'invitation': invitation,
+            'trip': invitation.trip,
+            'message': f'This invitation was already accepted. You are part of the trip to {invitation.trip.destination}.',
+        })
+
+    if invitation.status == 'rejected':
+        messages.info(request, 'This invitation was previously declined.')
+        return render(request, 'trips/invitation_response.html', {
+            'state': 'rejected',
+            'invitation': invitation,
+            'trip': invitation.trip,
+            'message': 'This invitation was previously rejected.',
+        })
+
+    if not request.user.is_authenticated:
+        messages.info(request, f'Please log in or sign up with {invitation.email} to accept this invitation.')
+        return redirect(f"{reverse('login')}?{urlencode({'next': request.get_full_path()})}")
+
+    if (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
+        messages.error(
+            request,
+            f'This invitation was sent to {invitation.email}, but you are logged in as {request.user.email or request.user.username}.'
+        )
+        return render(request, 'trips/invitation_response.html', {
+            'state': 'wrong_account',
+            'invitation': invitation,
+            'trip': invitation.trip,
+        })
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if not profile.is_complete():
+        messages.warning(request, 'Please complete your profile to join this trip.')
+        return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.get_full_path()})}")
+
+    TripMember.objects.get_or_create(
+        trip=invitation.trip, user=request.user, defaults={'role': 'member'}
+    )
+    invitation.status = 'accepted'
+    invitation.responded_at = timezone.now()
+    invitation.save()
+
+    messages.success(request, f'You successfully joined the trip to {invitation.trip.destination}!')
+    return render(request, 'trips/invitation_response.html', {
+        'state': 'accepted',
+        'invitation': invitation,
+        'trip': invitation.trip,
+        'message': f'You successfully accepted the invitation! Welcome to the trip to {invitation.trip.destination}.',
+    })
+
+
+def reject_invitation(request, token):
+    invitation = get_object_or_404(
+        Invitation.objects.select_related('trip', 'invited_by'),
+        token=token,
+    )
+
+    if invitation.status == 'accepted':
+        messages.info(request, 'This invitation was already accepted.')
+        return render(request, 'trips/invitation_response.html', {
+            'state': 'accepted',
+            'invitation': invitation,
+            'trip': invitation.trip,
+            'message': f'This invitation was already accepted and cannot be declined.',
+        })
+
+    if invitation.status == 'rejected':
+        return render(request, 'trips/invitation_response.html', {
+            'state': 'rejected',
+            'invitation': invitation,
+            'trip': invitation.trip,
+            'message': 'This invitation has already been declined.',
+        })
+
+    invitation.status = 'rejected'
+    invitation.responded_at = timezone.now()
+    invitation.save()
+
+    messages.info(request, f'You have declined the invitation to join the trip to {invitation.trip.destination}.')
+    return render(request, 'trips/invitation_response.html', {
+        'state': 'rejected',
+        'invitation': invitation,
+        'trip': invitation.trip,
+        'message': f'You have safely declined the invitation to join the trip to {invitation.trip.destination}.',
+    })
 
 def invitation_detail(request, token):
     invitation = get_object_or_404(

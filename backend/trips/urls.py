@@ -9,6 +9,8 @@ urlpatterns = [
     path('<int:trip_id>/invite/', views.invite_member, name='invite_member'),
     path('<int:trip_id>/leave/', views.leave_trip, name='leave_trip'),
     path('<int:trip_id>/members/<int:user_id>/remove/', views.remove_member, name='remove_member'),
-    path('invitations/<str:token>/', views.invitation_detail, name='invitation'),
-    path('invitations/<str:token>/respond/', views.respond_invitation, name='respond_invitation'),
+    path('invitations/<uuid:token>/', views.invitation_detail, name='invitation'),
+    path('invitations/<uuid:token>/accept/', views.accept_invitation, name='accept_invitation'),
+    path('invitations/<uuid:token>/reject/', views.reject_invitation, name='reject_invitation'),
+    path('invitations/<uuid:token>/respond/', views.respond_invitation, name='respond_invitation'),
 ]
