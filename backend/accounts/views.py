@@ -1,5 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.views import PasswordResetView
+from django.core.cache import cache
+from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -53,3 +56,16 @@ def landing(request):
     if request.user.is_authenticated:
         return redirect('home')
     return render(request, 'landing.html')
+
+
+PASSWORD_RESET_LIMIT_PER_HOUR = 3
+
+
+class LimitedPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        email = (form.cleaned_data.get('email') or '').strip().lower()
+        key = f'password-reset-count:{email}'
+        cache.add(key, 0, timeout=3600)
+        if cache.incr(key) > PASSWORD_RESET_LIMIT_PER_HOUR:
+            return HttpResponseRedirect(self.get_success_url())
+        return super().form_valid(form)

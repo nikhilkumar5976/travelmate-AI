@@ -16,7 +16,10 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 13px 24px; font-size: 15px;">
+    <div style="text-align: right; margin-top: -4px; margin-bottom: 14px;">
+      <a href="{% url 'password_reset' %}" style="color: var(--sky); font-size: 13px;">Forgot password?</a>
+    </div>
+    <button type="submit" class="btn" style="width: 100%; margin-top: 8px; padding: 13px 24px; font-size: 15px;">
       Log in &rarr;
     </button>
   </form>
