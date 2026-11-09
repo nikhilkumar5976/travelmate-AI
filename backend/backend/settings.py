@@ -205,3 +205,7 @@ DEFAULT_FROM_EMAIL = os.environ.get(
 SITE_URL = os.environ.get('SITE_URL', '')
 
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
