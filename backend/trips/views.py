@@ -69,10 +69,23 @@ def trip_detail(request, trip_id):
     })
 
 
+GENERATIONS_PER_HOUR = 5
+
+
 @login_required
 @require_POST
 def generate_itinerary_view(request, trip_id):
     trip = get_object_or_404(Trip, id=trip_id, owner=request.user)
+
+    key = f'itinerary-count:{request.user.id}'
+    cache.add(key, 0, timeout=3600)
+    if cache.incr(key) > GENERATIONS_PER_HOUR:
+        messages.error(
+            request,
+            'You have generated several itineraries recently. Please try again in a while.',
+        )
+        return redirect('trip_detail', trip_id=trip.id)
+
     try:
         generate_itinerary(trip)
         messages.success(request, 'Your itinerary is ready.')
