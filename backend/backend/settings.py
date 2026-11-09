@@ -26,9 +26,23 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 env_hosts = os.environ.get('ALLOWED_HOSTS', '').strip()
 if env_hosts:
-    ALLOWED_HOSTS = [h.strip() for h in env_hosts.split(',') if h.strip()]
+    cleaned_hosts = []
+    for h in env_hosts.split(','):
+        h = h.strip().strip("'\"")
+        if '://' in h:
+            h = h.split('://', 1)[1]
+        if ':' in h and not h.startswith('['):
+            h = h.split(':', 1)[0]
+        h = h.rstrip('/')
+        if h:
+            cleaned_hosts.append(h)
+    ALLOWED_HOSTS = cleaned_hosts
 else:
     ALLOWED_HOSTS = ['*']
+
+for local_host in ['127.0.0.1', 'localhost', '0.0.0.0', '[::1]', 'testserver']:
+    if local_host not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(local_host)
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
