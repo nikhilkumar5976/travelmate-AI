@@ -43,6 +43,36 @@ def create_trip(request):
 
 
 @login_required
+def edit_trip(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, owner=request.user)
+
+    if request.method == 'POST':
+        old_destination = trip.destination
+        old_num_days = trip.num_days
+        old_interests = set(trip.interests or [])
+
+        form = TripForm(request.POST, instance=trip)
+        if form.is_valid():
+            trip = form.save()
+            messages.success(request, 'Trip updated.')
+
+            if trip.days.exists():
+                new_interests = set(trip.interests or [])
+                if (
+                    old_destination != trip.destination
+                    or old_num_days != trip.num_days
+                    or old_interests != new_interests
+                ):
+                    messages.info(request, 'Your trip details changed. Regenerate the itinerary to match.')
+
+            return redirect('trip_detail', trip_id=trip.id)
+    else:
+        form = TripForm(instance=trip)
+
+    return render(request, 'trips/edit_trip.html', {'trip': trip, 'form': form})
+
+
+@login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(
         Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).select_related('owner').distinct(),

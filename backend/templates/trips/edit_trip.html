@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit trip - {{ trip.destination }} - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/trips.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card" style="padding: 36px 32px;">
+  <span class="eyebrow" style="margin-bottom: 14px;"><i></i>Trip Settings</span>
+  <h1 style="font-size: 28px; margin-bottom: 8px;">Edit <span class="grad">trip</span></h1>
+  <p style="margin-bottom: 26px; color: var(--muted); font-size: 15px;">
+    Update your destination, number of days, budget, or travel interests.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div style="display: flex; gap: 12px; align-items: center; margin-top: 28px; flex-wrap: wrap;">
+      <button type="submit" class="btn">Save</button>
+      <a href="{% url 'trip_detail' trip.id %}" class="btn btn-secondary">Back to trip</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
