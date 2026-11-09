@@ -142,7 +142,11 @@
         {% for member in members %}
           <li class="member-row">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="user-avatar-initial">{{ member.user.username|slice:":1"|upper }}</span>
+              {% if member.user.profile.photo %}
+                <img src="{{ member.user.profile.photo.url }}" alt="{{ member.user.username }}" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: block; border: 1px solid var(--line);">
+              {% else %}
+                <span class="user-avatar-initial">{{ member.user.username|slice:":1"|upper }}</span>
+              {% endif %}
               <div>
                 <strong style="color: var(--text); font-size: 14px; display: block;">{{ member.user.username }}</strong>
                 <small style="color: var(--muted); font-size: 12px;">{{ member.get_role_display|default:member.role }}</small>
