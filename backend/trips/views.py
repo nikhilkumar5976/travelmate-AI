@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db.models import Q, Sum
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -176,6 +177,21 @@ def invite_member(request, trip_id):
 
     messages.success(request, f'Invitation sent to {invitation.email}.')
     return redirect('trip_detail', trip_id=trip.id)
+
+@login_required
+@require_POST
+def cancel_invitation(request, trip_id, invitation_id):
+    trip = get_object_or_404(Trip, id=trip_id, members__user=request.user)
+    invitation = get_object_or_404(Invitation, id=invitation_id, trip=trip, status='pending')
+
+    if request.user != trip.owner and request.user != invitation.invited_by:
+        raise Http404
+
+    email = invitation.email
+    invitation.delete()
+    messages.success(request, f'Invitation to {email} was cancelled.')
+    return redirect('trip_detail', trip_id=trip.id)
+
 
 def accept_invitation(request, token):
     invitation = get_object_or_404(

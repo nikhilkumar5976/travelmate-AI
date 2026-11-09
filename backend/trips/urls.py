@@ -9,6 +9,7 @@ urlpatterns = [
     path('<int:trip_id>/delete/', views.delete_trip, name='delete_trip'),
     path('<int:trip_id>/generate/', views.generate_itinerary_view, name='generate_itinerary'),
     path('<int:trip_id>/invite/', views.invite_member, name='invite_member'),
+    path('<int:trip_id>/invitations/<int:invitation_id>/cancel/', views.cancel_invitation, name='cancel_invitation'),
     path('<int:trip_id>/leave/', views.leave_trip, name='leave_trip'),
     path('<int:trip_id>/members/<int:user_id>/remove/', views.remove_member, name='remove_member'),
     path('invitations/<uuid:token>/', views.invitation_detail, name='invitation'),
