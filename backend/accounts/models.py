@@ -8,6 +8,7 @@ class Profile(models.Model):
     )
     phone=models.CharField(max_length=10,blank=True)
     photo=models.ImageField(upload_to='profile_photos/',blank=True)
+    email_verified=models.BooleanField(default=False)
 
 
     def is_complete(self):

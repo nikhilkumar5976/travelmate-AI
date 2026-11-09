@@ -59,7 +59,17 @@ class EditProfileForm(forms.ModelForm):
         return photo
 
     def save(self, commit=True):
+        self.email_changed = False
+        new_email = (self.cleaned_data.get('email') or '').strip().lower()
+        if hasattr(self.instance, 'user') and self.instance.user:
+            old_email = (self.instance.user.email or '').strip().lower()
+            if old_email != new_email:
+                self.instance.email_verified = False
+                self.email_changed = True
         profile = super().save(commit=commit)
+        if self.email_changed and commit:
+            profile.email_verified = False
+            profile.save(update_fields=['email_verified'])
         if 'email' in self.cleaned_data and hasattr(profile, 'user'):
             profile.user.email = self.cleaned_data['email']
             profile.user.save()

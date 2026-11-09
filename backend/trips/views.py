@@ -30,6 +30,13 @@ def create_trip(request):
         messages.error(request, 'Complete your profile before creating a trip.')
         return redirect('edit_profile')
 
+    if not profile.email_verified:
+        messages.error(
+            request,
+            'Verify your email first. Check your inbox or use the Resend button on your home page.'
+        )
+        return redirect('home')
+
     if request.method == 'POST':
         form = TripForm(request.POST)
         if form.is_valid():
@@ -178,6 +185,7 @@ def invite_member(request, trip_id):
     messages.success(request, f'Invitation sent to {invitation.email}.')
     return redirect('trip_detail', trip_id=trip.id)
 
+
 @login_required
 @require_POST
 def cancel_invitation(request, trip_id, invitation_id):
@@ -191,7 +199,6 @@ def cancel_invitation(request, trip_id, invitation_id):
     invitation.delete()
     messages.success(request, f'Invitation to {email} was cancelled.')
     return redirect('trip_detail', trip_id=trip.id)
-
 
 def accept_invitation(request, token):
     invitation = get_object_or_404(
@@ -308,6 +315,12 @@ def invitation_detail(request, token):
         if not profile.is_complete():
             messages.error(request, 'Complete your profile to join this trip.')
             return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.path})}")
+        if not profile.email_verified:
+            messages.error(
+                request,
+                'Verify your email first. Check your inbox or use the Resend button on your home page. After verifying, open your invitation link again.'
+            )
+            return redirect('home')
         context['state'] = 'ready'
     return render(request, 'trips/invitation.html', context)
 
@@ -322,6 +335,13 @@ def respond_invitation(request, token):
         return redirect('invitation', token=token)
 
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    if not profile.email_verified:
+        messages.error(
+            request,
+            'Verify your email first. Check your inbox or use the Resend button on your home page.'
+        )
+        return redirect('home')
+
     if not profile.is_complete():
         return redirect('invitation', token=token)
 

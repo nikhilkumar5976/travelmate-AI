@@ -12,6 +12,18 @@
     Your AI-powered travel hub. Create custom day-by-day itineraries, manage group trips, and explore destinations.
   </p>
 
+  {% if not profile.email_verified %}
+    <div class="alert alert-error" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: rgba(251, 146, 60, 0.12); border-color: rgba(251, 146, 60, 0.35); color: #fed7aa;">
+      <p style="margin: 0; color: inherit; font-size: 14px;">
+        Your email is not verified. Verify it to create or join trips.
+      </p>
+      <form method="post" action="{% url 'resend_verification' %}" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-small btn-secondary" style="font-size: 12px; padding: 6px 14px;">Resend verification email</button>
+      </form>
+    </div>
+  {% endif %}
+
   {% if profile.is_complete %}
     <div class="alert alert-success" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;">
       <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399;"></span>
