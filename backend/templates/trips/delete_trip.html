@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete trip - {{ trip.destination }} - TravelMate AI{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/trips.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card" style="padding: 36px 32px; border-color: rgba(248, 113, 113, 0.3);">
+  <span class="badge badge-danger" style="margin-bottom: 14px;">Danger zone</span>
+  <h1 style="font-size: 28px; margin-bottom: 8px;">Delete <span style="color: var(--danger);">trip</span>?</h1>
+  <p style="margin-bottom: 20px; font-size: 15px; color: var(--text);">
+    Are you sure you want to delete your trip to <strong>{{ trip.destination }}</strong> ({{ trip.num_days }} day{{ trip.num_days|pluralize }})?
+  </p>
+
+  <div class="alert alert-error" style="margin-bottom: 24px;">
+    <p style="margin: 0; color: inherit;">
+      <strong>Warning:</strong> This permanently deletes the itinerary, the group chat, pending invitations, and removes all members. This cannot be undone.
+    </p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <button type="submit" class="btn btn-danger">Yes, delete this trip</button>
+      <a href="{% url 'trip_detail' trip.id %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

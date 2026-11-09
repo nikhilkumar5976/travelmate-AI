@@ -6,6 +6,7 @@ urlpatterns = [
     path('new/', views.create_trip, name='create_trip'),
     path('<int:trip_id>/', views.trip_detail, name='trip_detail'),
     path('<int:trip_id>/edit/', views.edit_trip, name='edit_trip'),
+    path('<int:trip_id>/delete/', views.delete_trip, name='delete_trip'),
     path('<int:trip_id>/generate/', views.generate_itinerary_view, name='generate_itinerary'),
     path('<int:trip_id>/invite/', views.invite_member, name='invite_member'),
     path('<int:trip_id>/leave/', views.leave_trip, name='leave_trip'),

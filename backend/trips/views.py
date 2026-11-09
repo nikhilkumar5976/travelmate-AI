@@ -73,6 +73,19 @@ def edit_trip(request, trip_id):
 
 
 @login_required
+def delete_trip(request, trip_id):
+    trip = get_object_or_404(Trip, id=trip_id, owner=request.user)
+
+    if request.method == 'POST':
+        destination = trip.destination
+        trip.delete()
+        messages.success(request, f'The trip to {destination} was deleted.')
+        return redirect('my_trips')
+
+    return render(request, 'trips/delete_trip.html', {'trip': trip})
+
+
+@login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(
         Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).select_related('owner').distinct(),
