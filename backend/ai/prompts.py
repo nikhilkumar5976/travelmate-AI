@@ -18,6 +18,7 @@ Rules:
 4. The total cost for the whole group (cost per person times {travelers}) should stay within the total budget. If the budget is too low for this destination and number of days, still build the best plan you can and write a short, honest explanation in "budget_warning".
 5. Only suggest places and activities you are confident really exist at this destination. Do not invent names. If unsure, suggest a general activity instead.
 6. Include accommodation, local transport, and food costs in the estimates.
+7. Keep every title under 6 words and every description to one short sentence of at most 20 words.
 
 Respond with valid JSON only, with no extra text, in exactly this shape:
 {{
