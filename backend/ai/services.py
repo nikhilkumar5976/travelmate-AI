@@ -75,7 +75,7 @@ def generate_itinerary(trip):
     prompt = build_itinerary_prompt(trip, travelers, settings.TRIP_CURRENCY)
     last_error = None
     for _ in range(2):
-        reply = call_llm(prompt)
+        reply = call_llm(prompt, json_output=True)
         try:
             data = parse_itinerary(reply, trip.num_days)
         except ItineraryError as error:
