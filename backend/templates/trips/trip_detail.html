@@ -56,7 +56,7 @@
         <p style="margin-bottom: 0; max-width: 620px;">Generate a customized day-by-day itinerary tailored to your duration, budget, and travel interests.</p>
       </div>
       <div>
-        <form method="post" action="{% url 'generate_itinerary' trip.id %}" style="margin: 0;">
+        <form method="post" action="{% url 'generate_itinerary' trip.id %}" style="margin: 0;" onsubmit="var b = this.querySelector('button'); b.disabled = true; b.textContent = 'Planning your trip... this can take up to a minute';">
           {% csrf_token %}
           <button type="submit" class="btn">
             {% if days %}Regenerate itinerary &rarr;{% else %}Generate itinerary &rarr;{% endif %}
