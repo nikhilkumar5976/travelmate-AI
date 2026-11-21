@@ -1,4 +1,6 @@
 import json
+import logging
+import time
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
@@ -7,6 +9,8 @@ from django.db import transaction
 from itinerary.models import Day, Stop
 from .llm import call_llm
 from .prompts import build_itinerary_prompt
+
+logger = logging.getLogger(__name__)
 
 VALID_TIMES = {'morning', 'afternoon', 'evening'}
 VALID_CATEGORIES = {'food', 'sightseeing', 'stay', 'transport', 'activity'}
@@ -75,7 +79,10 @@ def generate_itinerary(trip):
     prompt = build_itinerary_prompt(trip, travelers, settings.TRIP_CURRENCY)
     last_error = None
     for _ in range(2):
+        start = time.monotonic()
         reply = call_llm(prompt, json_output=True)
+        duration = time.monotonic() - start
+        logger.info("Itinerary AI call took %.1f seconds", duration)
         try:
             data = parse_itinerary(reply, trip.num_days)
         except ItineraryError as error:
