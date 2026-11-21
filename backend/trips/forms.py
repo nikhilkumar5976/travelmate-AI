@@ -16,7 +16,7 @@ class TripForm(forms.ModelForm):
         fields = ('destination', 'num_days', 'budget', 'interests')
         labels = {
             'num_days': 'Number of days',
-            'budget': 'Total budget',
+            'budget': 'Total budget (₹)',
         }
 
     def clean_destination(self):

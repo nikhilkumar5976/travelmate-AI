@@ -43,7 +43,7 @@
   </div>
   <div class="stat-box">
     <small>Allocated budget</small>
-    <strong>${{ trip.budget }} (${{ budget_per_person|floatformat:2 }} / person)</strong>
+    <strong>₹{{ trip.budget }} (₹{{ budget_per_person|floatformat:2 }} / person)</strong>
   </div>
 </div>
 
@@ -98,7 +98,7 @@
                   </div>
                   <div style="color: var(--muted); font-size: 14px; margin-bottom: 8px; line-height: 1.5;">{{ stop.description }}</div>
                   <div style="font-size: 13px; color: var(--sun); font-weight: 600;">
-                    Estimated cost per person: ${{ stop.estimated_cost_per_person }}
+                    Estimated cost per person: ₹{{ stop.estimated_cost_per_person }}
                   </div>
                 </li>
               {% endfor %}
@@ -112,11 +112,11 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 12px;">
           <div style="padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
             <div style="font-size: 12px; color: var(--muted);">Per person</div>
-            <div style="font-size: 20px; font-weight: 700; color: var(--text);">${{ cost_per_person|floatformat:2 }}</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text);">₹{{ cost_per_person|floatformat:2 }}</div>
           </div>
           <div style="padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
             <div style="font-size: 12px; color: var(--muted);">Whole group</div>
-            <div style="font-size: 20px; font-weight: 700; color: var(--sun);">${{ group_cost|floatformat:2 }}</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--sun);">₹{{ group_cost|floatformat:2 }}</div>
           </div>
         </div>
         <p style="font-size: 13px; color: var(--muted); margin: 0;">These are AI estimates, not exact vendor prices.</p>

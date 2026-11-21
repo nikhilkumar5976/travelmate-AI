@@ -18,14 +18,14 @@ class TripsReadTests(TestCase):
             username='alice', email='alice@example.com', password='password123'
         )
         self.owner_profile = Profile.objects.create(
-            user=self.owner, phone='1234567890', photo='profile_photos/test.jpg'
+            user=self.owner, phone='1234567890', photo='profile_photos/test.jpg', email_verified=True
         )
 
         self.member = User.objects.create_user(
             username='bob', email='bob@example.com', password='password123'
         )
         self.member_profile = Profile.objects.create(
-            user=self.member, phone='0987654321', photo='profile_photos/bob.jpg'
+            user=self.member, phone='0987654321', photo='profile_photos/bob.jpg', email_verified=True
         )
 
         self.stranger = User.objects.create_user(
@@ -75,6 +75,7 @@ class TripsReadTests(TestCase):
         self.assertTemplateUsed(response, 'trips/my_trips.html')
         self.assertContains(response, 'Tokyo')
         self.assertContains(response, '3 days')
+        self.assertContains(response, '₹1500.00 budget')
 
     def test_trip_detail_owner(self):
         self.client.force_login(self.owner)
@@ -86,6 +87,8 @@ class TripsReadTests(TestCase):
         self.assertContains(response, 'Ramen Street')
         self.assertContains(response, 'Regenerate itinerary')
         self.assertContains(response, 'Food, sightseeing')
+        self.assertContains(response, '₹1500.00')
+        self.assertContains(response, 'Estimated cost per person: ₹10.00')
 
     def test_trip_detail_member(self):
         self.client.force_login(self.member)
@@ -151,7 +154,7 @@ class TripsReadTests(TestCase):
             invited_by=self.owner,
         )
         Profile.objects.create(
-            user=self.stranger, phone='1112223333', photo='profile_photos/c.jpg'
+            user=self.stranger, phone='1112223333', photo='profile_photos/c.jpg', email_verified=True
         )
         self.client.force_login(self.stranger)
         response = self.client.get(reverse('invitation', args=[invite.token]))
@@ -198,7 +201,7 @@ class TripsReadTests(TestCase):
             invited_by=self.owner,
         )
         Profile.objects.create(
-            user=self.stranger, phone='1112223333', photo='profile_photos/c.jpg'
+            user=self.stranger, phone='1112223333', photo='profile_photos/c.jpg', email_verified=True
         )
         self.client.force_login(self.stranger)
         response = self.client.get(reverse('accept_invitation', args=[invite.token]))

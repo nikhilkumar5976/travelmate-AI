@@ -28,7 +28,7 @@
             <a href="{% url 'trip_detail' trip.id %}" style="color: inherit;">{{ trip.destination }}</a>
           </h3>
           <p style="margin-bottom: 18px; color: var(--muted); font-size: 14px;">
-            Budget: <strong style="color: var(--sun);">${{ trip.budget }}</strong>
+            Budget: <strong style="color: var(--sun);">₹{{ trip.budget }}</strong>
           </p>
         </div>
         <div>
