@@ -12,3 +12,4 @@ if str(BASE_DIR) not in sys.path:
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
 from backend.wsgi import application, app  # noqa: F401, E402
+
