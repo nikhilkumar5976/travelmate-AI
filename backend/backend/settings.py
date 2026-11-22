@@ -24,28 +24,16 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-env_hosts = os.environ.get('ALLOWED_HOSTS', '').strip()
-if env_hosts:
-    cleaned_hosts = []
-    for h in env_hosts.split(','):
-        h = h.strip().strip("'\"")
-        if '://' in h:
-            h = h.split('://', 1)[1]
-        if ':' in h and not h.startswith('['):
-            h = h.split(':', 1)[0]
-        h = h.rstrip('/')
-        if h:
-            cleaned_hosts.append(h)
-    ALLOWED_HOSTS = cleaned_hosts
-else:
-    ALLOWED_HOSTS = ['*']
+# Allow Render's domain
+ALLOWED_HOSTS = ['*']  # Replace with your .onrender.com URL after deploy
 
-for local_host in ['127.0.0.1', 'localhost', '0.0.0.0', '[::1]', 'testserver']:
-    if local_host not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(local_host)
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
+    'https://*.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
@@ -113,22 +101,13 @@ ASGI_APPLICATION = 'backend.asgi.application'
 # Database
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# Connect to Render's PostgreSQL via DATABASE_URL
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
+}
 
 
 # ---------------------------------------------------------------------------
@@ -159,17 +138,20 @@ USE_TZ = True
 # Static and uploaded files
 # ---------------------------------------------------------------------------
 
+# Static files configuration (needed so /admin looks right)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
 
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
