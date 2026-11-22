@@ -120,11 +120,22 @@ if DATABASE_URL:
     }
 elif IS_VERCEL:
     # On Vercel serverless functions, /var/task is read-only.
-    # Ephemeral writable files must be placed in /tmp.
+    # Writable database must reside in /tmp (tempfile.gettempdir()).
+    import shutil
+    import tempfile
+    tmp_db = Path(tempfile.gettempdir()) / 'db.sqlite3'
+    if not tmp_db.exists():
+        for candidate in [BASE_DIR / 'seed.sqlite3', BASE_DIR / 'db.sqlite3']:
+            if candidate.exists():
+                try:
+                    shutil.copy2(candidate, tmp_db)
+                    break
+                except Exception:
+                    pass
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': Path('/tmp/db.sqlite3'),
+            'NAME': tmp_db,
         }
     }
 else:

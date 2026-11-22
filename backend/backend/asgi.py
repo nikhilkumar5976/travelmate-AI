@@ -15,14 +15,15 @@ application = get_asgi_application()
 app = application
 
 # On Vercel serverless functions without an external DATABASE_URL,
-# ensure migrations are applied to the ephemeral /tmp/db.sqlite3 on container boot.
+# ensure all database tables exist on the ephemeral /tmp/db.sqlite3 on boot.
 if os.environ.get('VERCEL') and not os.environ.get('DATABASE_URL'):
-    marker = Path('/tmp/.migrated')
-    if not marker.exists():
-        try:
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            tables = connection.introspection.table_names(cursor)
+        if 'auth_user' not in tables:
             from django.core.management import call_command
             call_command('migrate', interactive=False, verbosity=0)
-            marker.touch()
-        except Exception:
-            pass
+    except Exception:
+        pass
 
