@@ -24,8 +24,14 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-# Allow Render's domain
-ALLOWED_HOSTS = ['*']  # Replace with your .onrender.com URL after deploy
+# Allowed hosts for Vercel, Render, and local development
+ALLOWED_HOSTS = [
+    '*',
+    '.vercel.app',
+    '.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
