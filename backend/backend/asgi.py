@@ -13,3 +13,16 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
 application = get_asgi_application()
 app = application
+
+# On Vercel serverless functions without an external DATABASE_URL,
+# ensure migrations are applied to the ephemeral /tmp/db.sqlite3 on container boot.
+if os.environ.get('VERCEL') and not os.environ.get('DATABASE_URL'):
+    marker = Path('/tmp/.migrated')
+    if not marker.exists():
+        try:
+            from django.core.management import call_command
+            call_command('migrate', interactive=False, verbosity=0)
+            marker.touch()
+        except Exception:
+            pass
+

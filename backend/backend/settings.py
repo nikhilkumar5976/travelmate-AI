@@ -107,13 +107,34 @@ ASGI_APPLICATION = 'backend.asgi.application'
 # Database
 # ---------------------------------------------------------------------------
 
-# Connect to Render's PostgreSQL via DATABASE_URL
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-    )
-}
+IS_VERCEL = bool(os.environ.get('VERCEL')) or 'VERCEL' in os.environ
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require='localhost' not in DATABASE_URL and '127.0.0.1' not in DATABASE_URL,
+        )
+    }
+elif IS_VERCEL:
+    # On Vercel serverless functions, /var/task is read-only.
+    # Ephemeral writable files must be placed in /tmp.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': Path('/tmp/db.sqlite3'),
+        }
+    }
+else:
+    # Local development or environments without DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+        )
+    }
 
 
 # ---------------------------------------------------------------------------
