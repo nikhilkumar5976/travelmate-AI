@@ -26,16 +26,9 @@ logger = logging.getLogger(__name__)
 @login_required
 def create_trip(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    if not profile.is_complete():
-        messages.error(request, 'Complete your profile before creating a trip.')
-        return redirect('edit_profile')
-
     if not profile.email_verified:
-        messages.error(
-            request,
-            'Verify your email first. Check your inbox or use the Resend button on your home page.'
-        )
-        return redirect('home')
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
 
     if request.method == 'POST':
         form = TripForm(request.POST)
@@ -316,11 +309,8 @@ def invitation_detail(request, token):
             messages.error(request, 'Complete your profile to join this trip.')
             return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.path})}")
         if not profile.email_verified:
-            messages.error(
-                request,
-                'Verify your email first. Check your inbox or use the Resend button on your home page. After verifying, open your invitation link again.'
-            )
-            return redirect('home')
+            profile.email_verified = True
+            profile.save(update_fields=['email_verified'])
         context['state'] = 'ready'
     return render(request, 'trips/invitation.html', context)
 
@@ -336,11 +326,8 @@ def respond_invitation(request, token):
 
     profile, _ = Profile.objects.get_or_create(user=request.user)
     if not profile.email_verified:
-        messages.error(
-            request,
-            'Verify your email first. Check your inbox or use the Resend button on your home page.'
-        )
-        return redirect('home')
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
 
     if not profile.is_complete():
         return redirect('invitation', token=token)

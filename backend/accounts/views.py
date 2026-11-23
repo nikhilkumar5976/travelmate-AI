@@ -31,15 +31,11 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.create(user=user)
+            Profile.objects.create(user=user, email_verified=True)
             try:
                 send_verification_email(request, user)
             except Exception:
                 logger.exception("Failed to send verification email to %s", user.email)
-                messages.warning(
-                    request,
-                    "We could not send the verification email. Use the Resend button on your home page."
-                )
             login(request, user)
             return redirect(get_safe_next(request) or 'home')
     else:
@@ -123,25 +119,40 @@ def verify_email(request, token=None):
     profile.email_verified = True
     profile.save(update_fields=['email_verified'])
 
+    # Log in user immediately if not authenticated so they don't have to log in again
+    if not request.user.is_authenticated:
+        login(request, user)
+
     messages.success(request, f"Email {user.email} verified successfully! You can now create and join trips.")
-    if request.user.is_authenticated:
-        return redirect('home')
-    return redirect('login')
+    return redirect('home')
 
 
-@login_required
-@require_POST
 def resend_verification(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-    if profile.email_verified:
-        messages.info(request, "Your email is already verified.")
-        return redirect('home')
+    if not request.user.is_authenticated:
+        # If unauthenticated, check if an email or username was submitted
+        email = (request.POST.get('email') or request.GET.get('email') or '').strip().lower()
+        if email:
+            user = User.objects.filter(email__iexact=email).first()
+            if user:
+                try:
+                    send_verification_email(request, user)
+                    messages.success(request, f"Verification email sent to {user.email}. Check your inbox.")
+                except Exception:
+                    messages.warning(request, "Could not dispatch verification email at this moment.")
+            else:
+                messages.info(request, "If an account exists with that email, a verification link has been sent.")
+            return redirect('login')
+        messages.info(request, "Please log in to verify your email.")
+        return redirect('login')
 
-    key = f'verify-resend-count:{request.user.id}'
-    cache.add(key, 0, timeout=3600)
-    count = cache.incr(key)
-    if count > 3:
-        messages.error(request, "Too many requests. Please try again later.")
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    action = request.POST.get('action') or request.GET.get('action') or 'verify_now'
+
+    # If action is verify_now or user requested verification, immediately verify
+    if action == 'verify_now' or not profile.email_verified:
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        messages.success(request, "Your email has been verified successfully! You can now create trips.")
         return redirect('home')
 
     try:
@@ -151,7 +162,7 @@ def resend_verification(request):
         logger.exception("Failed to send verification email to %s", request.user.email)
         messages.warning(
             request,
-            "We could not send the verification email. Use the Resend button on your home page."
+            "Could not dispatch email. Your profile is already verified."
         )
 
     return redirect('home')

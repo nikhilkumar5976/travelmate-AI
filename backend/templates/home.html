@@ -15,12 +15,20 @@
   {% if not profile.email_verified %}
     <div class="alert alert-error" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; background: rgba(251, 146, 60, 0.12); border-color: rgba(251, 146, 60, 0.35); color: #fed7aa;">
       <p style="margin: 0; color: inherit; font-size: 14px;">
-        Your email is not verified. Verify it to create or join trips.
+        Your email is not verified. You can verify it instantly or request a confirmation email.
       </p>
-      <form method="post" action="{% url 'resend_verification' %}" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-small btn-secondary" style="font-size: 12px; padding: 6px 14px;">Resend verification email</button>
-      </form>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <form method="post" action="{% url 'resend_verification' %}" style="margin: 0;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="verify_now">
+          <button type="submit" class="btn btn-small" style="font-size: 12px; padding: 6px 14px; background: #f97316; color: white;">Verify Now</button>
+        </form>
+        <form method="post" action="{% url 'resend_verification' %}" style="margin: 0;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="resend_email">
+          <button type="submit" class="btn btn-small btn-secondary" style="font-size: 12px; padding: 6px 14px;">Resend email</button>
+        </form>
+      </div>
     </div>
   {% endif %}
 

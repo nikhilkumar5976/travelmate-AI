@@ -12,7 +12,7 @@ class Profile(models.Model):
 
 
     def is_complete(self):
-        return bool(self.photo and self.phone and self.user.email)
+        return bool(self.phone and self.user.email)
     
     def __str__(self):
         return self.user.username
