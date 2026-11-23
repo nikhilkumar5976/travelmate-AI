@@ -118,7 +118,7 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=600,
+            conn_max_age=0 if IS_VERCEL else 600,
             ssl_require='localhost' not in DATABASE_URL and '127.0.0.1' not in DATABASE_URL,
         )
     }

@@ -13,3 +13,10 @@ from django.core.wsgi import get_wsgi_application
 
 application = get_wsgi_application()
 app = application
+
+# Automatic PostgreSQL initialization for Supabase/Neon when DATABASE_URL is set
+try:
+    from backend.bootstrap import run_database_bootstrap
+    run_database_bootstrap()
+except Exception:
+    pass
