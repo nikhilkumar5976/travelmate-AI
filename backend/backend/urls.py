@@ -47,6 +47,24 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 def serve_media(request, path):
+    import base64
+    from pathlib import Path
+    media_file = Path(settings.MEDIA_ROOT) / path
+    if not media_file.exists():
+        session = getattr(request, 'session', None)
+        if session:
+            persisted_photo_data = session.get('persisted_photo_data')
+            persisted_photo_name = session.get('persisted_photo_name', '')
+            if persisted_photo_data and (persisted_photo_name == path or persisted_photo_name.endswith(path) or path.endswith(persisted_photo_name)):
+                try:
+                    media_file.parent.mkdir(parents=True, exist_ok=True)
+                    raw_b64 = persisted_photo_data
+                    if ',' in raw_b64:
+                        raw_b64 = raw_b64.split(',', 1)[1]
+                    media_file.write_bytes(base64.b64decode(raw_b64))
+                except Exception:
+                    pass
+
     try:
         return serve(request, path, document_root=settings.MEDIA_ROOT)
     except Exception:

@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import SignUpForm, EditProfileForm
 from .models import Profile
+from .profile_utils import generate_avatar_data_uri
 from .verification import send_verification_email, decode_verification_token
 
 logger = logging.getLogger(__name__)
@@ -64,17 +65,67 @@ def signup(request):
 @login_required
 def home(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    session = getattr(request, 'session', None)
+    if session:
+        persisted_phone = session.get('persisted_phone')
+        persisted_photo_name = session.get('persisted_photo_name')
+        updated_fields = []
+        if persisted_phone and profile.phone != persisted_phone:
+            profile.phone = persisted_phone
+            updated_fields.append('phone')
+        if persisted_photo_name and profile.photo.name != persisted_photo_name:
+            profile.photo.name = persisted_photo_name
+            updated_fields.append('photo')
+        if not profile.email_verified:
+            profile.email_verified = True
+            updated_fields.append('email_verified')
+        if updated_fields:
+            profile.save(update_fields=updated_fields)
     return render(request, 'home.html', {'profile': profile})
 
 
 @login_required
 def edit_profile(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    session = getattr(request, 'session', None)
+    if session:
+        persisted_phone = session.get('persisted_phone')
+        persisted_photo_name = session.get('persisted_photo_name')
+        updated = False
+        if persisted_phone and not profile.phone:
+            profile.phone = persisted_phone
+            updated = True
+        if persisted_photo_name and not profile.photo.name:
+            profile.photo.name = persisted_photo_name
+            updated = True
+        if updated:
+            profile.save()
+
     if request.method == 'POST':
         form = EditProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
+            profile = form.save()
             messages.success(request, 'Profile saved.')
+
+            # Persist phone, photo, and completion state in signed session cookie
+            if session:
+                try:
+                    session['persisted_username'] = request.user.username
+                    session['persisted_email'] = request.user.email or ''
+                    session['persisted_password_hash'] = request.user.password or ''
+                    session['persisted_phone'] = profile.phone or ''
+                    session['profile_completed'] = profile.is_complete()
+
+                    if profile.photo:
+                        session['persisted_photo_name'] = profile.photo.name
+                        data_uri = generate_avatar_data_uri(profile.photo)
+                        if data_uri:
+                            session['persisted_photo_data'] = data_uri
+
+                    session.modified = True
+                except Exception as exc:
+                    logger.debug("Failed caching profile in session: %s", exc)
+
             if getattr(form, 'email_changed', False):
                 request.user.refresh_from_db()
                 try:

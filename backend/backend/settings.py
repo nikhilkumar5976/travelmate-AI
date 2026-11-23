@@ -187,14 +187,18 @@ elif IS_VERCEL:
                     "UPDATE auth_user SET password=?, is_superuser=1, is_staff=1, is_active=1, email='nikhilkhatri240@gmail.com' WHERE id=?",
                     (pwd_hash, uid)
                 )
-            cur.execute("SELECT id FROM accounts_profile WHERE user_id=?", (uid,))
-            if not cur.fetchone():
+            cur.execute("SELECT id, phone, photo FROM accounts_profile WHERE user_id=?", (uid,))
+            p_row = cur.fetchone()
+            if not p_row:
                 cur.execute(
-                    "INSERT INTO accounts_profile (user_id, phone, photo, email_verified) VALUES (?, '', '', 1)",
+                    "INSERT INTO accounts_profile (user_id, phone, photo, email_verified) VALUES (?, '7900781098', 'profile_photos/Screenshot_2026-11-22_133941.png', 1)",
                     (uid,)
                 )
             else:
-                cur.execute("UPDATE accounts_profile SET email_verified=1 WHERE user_id=?", (uid,))
+                p_id, p_phone, p_photo = p_row
+                p_phone = p_phone or '7900781098'
+                p_photo = p_photo or 'profile_photos/Screenshot_2026-11-22_133941.png'
+                cur.execute("UPDATE accounts_profile SET phone=?, photo=?, email_verified=1 WHERE id=?", (p_phone, p_photo, p_id))
             conn.commit()
     except Exception:
         pass
