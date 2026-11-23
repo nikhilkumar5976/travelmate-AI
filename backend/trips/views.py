@@ -170,13 +170,10 @@ def invite_member(request, trip_id):
     invite_url = invitation.get_invite_url(request=request)
     try:
         send_invitation_email(invitation, request=request)
-        if getattr(settings, 'EMAIL_HOST_USER', None):
-            messages.success(request, f'Invitation sent to {invitation.email}! You can also copy the direct link below.')
-        else:
-            messages.info(request, f'Invitation created for {invitation.email}! Copy the direct link below to share with your companion.')
+        messages.success(request, f'Invitation email sent to {invitation.email}! Please tell them to check their inbox.')
     except Exception as exc:
-        logger.warning('Could not send invitation email: %s', exc)
-        messages.info(request, f'Invitation created for {invitation.email}! Copy the direct link below to share with your companion.')
+        logger.exception('Could not send invitation email: %s', exc)
+        messages.error(request, f'Could not send invitation email to {invitation.email}. Please try again.')
 
     return redirect('trip_detail', trip_id=trip.id)
 

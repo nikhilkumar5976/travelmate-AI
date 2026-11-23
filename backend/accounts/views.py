@@ -160,23 +160,10 @@ def resend_verification(request):
 
     try:
         send_verification_email(request, request.user)
-        if getattr(settings, 'EMAIL_HOST_USER', None):
-            messages.success(request, f"Verification email sent to {request.user.email}! Please check your inbox and spam folder.")
-        else:
-            messages.info(
-                request,
-                f"Verification email generated for {request.user.email}. (Email delivery requires Vercel SMTP setup; your email is now verified!)"
-            )
-            profile.email_verified = True
-            profile.save(update_fields=['email_verified'])
+        messages.success(request, f"Verification email sent to {request.user.email}! Please check your inbox (and spam folder).")
     except Exception as exc:
         logger.exception("Failed to send verification email to %s: %s", request.user.email, exc)
-        messages.warning(
-            request,
-            "Could not dispatch email. Your account has been verified directly so you are not blocked."
-        )
-        profile.email_verified = True
-        profile.save(update_fields=['email_verified'])
+        messages.error(request, f"Could not dispatch verification email: {exc}")
 
     return redirect('home')
 

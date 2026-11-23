@@ -291,23 +291,31 @@ TRIP_CURRENCY = 'INR'
 # Email configuration
 # ---------------------------------------------------------------------------
 
-EMAIL_HOST_USER = (os.environ.get('EMAIL_HOST_USER') or os.environ.get('EMAIL_USER') or '').strip()
-raw_password = os.environ.get('EMAIL_HOST_PASSWORD') or os.environ.get('EMAIL_APP_PASSWORD') or ''
-EMAIL_HOST_PASSWORD = raw_password.replace(' ', '')
+EMAIL_HOST_USER = (
+    os.environ.get('EMAIL_HOST_USER')
+    or os.environ.get('EMAIL_USER')
+    or 'travelmate815@gmail.com'
+).strip()
+raw_password = (
+    os.environ.get('EMAIL_HOST_PASSWORD')
+    or os.environ.get('EMAIL_APP_PASSWORD')
+    or 'jdcafbrqucakwqrl'
+)
+EMAIL_HOST_PASSWORD = raw_password.replace(' ', '').strip()
 
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND',
-    'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST_USER else 'django.core.mail.backends.console.EmailBackend'
+    'django.core.mail.backends.smtp.EmailBackend'
 )
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
-EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 10))
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 15))
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL',
-    f'TravelMate AI <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'TravelMate AI <noreply@travelmate.local>'
+    f'TravelMate AI <{EMAIL_HOST_USER}>'
 )
 
 SITE_URL = os.environ.get('SITE_URL') or ('https://travelmate-ai-lovat.vercel.app' if IS_VERCEL else 'http://localhost:8000')
