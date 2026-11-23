@@ -88,10 +88,16 @@ def delete_trip(request, trip_id):
 
 @login_required
 def trip_detail(request, trip_id):
-    trip = get_object_or_404(
-        Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).select_related('owner').distinct(),
-        id=trip_id
-    )
+    trip = Trip.objects.filter(
+        Q(owner=request.user) | Q(members__user=request.user)
+    ).select_related('owner').distinct().filter(id=trip_id).first()
+    if not trip:
+        existing = Trip.objects.filter(id=trip_id).first()
+        if existing:
+            messages.error(request, 'You are not a member of this trip.')
+        else:
+            messages.error(request, 'This trip was not found or has expired on the server.')
+        return redirect('my_trips')
     members = list(trip.members.select_related('user', 'user__profile'))
     member_count = len(members)
     days = trip.days.prefetch_related('stops')

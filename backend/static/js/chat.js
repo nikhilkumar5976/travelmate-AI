@@ -112,11 +112,20 @@
   }
 
   // Live polling for incoming messages
+  var consecutiveErrors = 0;
   function pollNewMessages() {
     var url = '/chat/' + tripId + '/messages/?after=' + lastMsgId;
     fetch(url)
       .then(function (res) {
-        if (!res.ok) { throw new Error('Status ' + res.status); }
+        if (!res.ok) {
+          consecutiveErrors++;
+          if (res.status === 404) {
+            clearInterval(pollInterval);
+            setStatus('Trip not found', '#f87171');
+          }
+          throw new Error('Status ' + res.status);
+        }
+        consecutiveErrors = 0;
         return res.json();
       })
       .then(function (result) {
@@ -126,11 +135,15 @@
         setStatus('Live', '#4ade80');
       })
       .catch(function () {
-        setStatus('Reconnecting...', '#fbbf24');
+        if (consecutiveErrors < 3) {
+          setStatus('Reconnecting...', '#fbbf24');
+        } else {
+          setStatus('Disconnected', '#f87171');
+        }
       });
   }
 
-  var pollInterval = setInterval(pollNewMessages, 2500);
+  var pollInterval = setInterval(pollNewMessages, 3000);
 
   // Asynchronous Send
   var isSending = false;

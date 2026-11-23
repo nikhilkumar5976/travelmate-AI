@@ -11,10 +11,14 @@ from .models import ChatMessage
 
 @login_required
 def trip_chat(request, trip_id):
-    trip = get_object_or_404(
-        Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).distinct(),
-        id=trip_id
-    )
+    trip = Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).distinct().filter(id=trip_id).first()
+    if not trip:
+        existing = Trip.objects.filter(id=trip_id).first()
+        if existing:
+            messages.error(request, 'You must be a member of this trip to access the group chat.')
+        else:
+            messages.error(request, 'This trip was not found or has expired on the server.')
+        return redirect('my_trips')
 
     if request.method == 'POST':
         form = ChatForm(request.POST)
@@ -56,10 +60,9 @@ def trip_chat(request, trip_id):
 
 @login_required
 def chat_messages_api(request, trip_id):
-    trip = get_object_or_404(
-        Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).distinct(),
-        id=trip_id
-    )
+    trip = Trip.objects.filter(Q(owner=request.user) | Q(members__user=request.user)).distinct().filter(id=trip_id).first()
+    if not trip:
+        return JsonResponse({'error': 'Trip not found or access denied.', 'messages': []}, status=404)
     after_id = request.GET.get('after')
     query = ChatMessage.objects.filter(trip=trip).select_related('sender', 'sender__profile')
     if after_id and str(after_id).isdigit():
