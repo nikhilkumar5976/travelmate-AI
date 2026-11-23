@@ -292,7 +292,10 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     f'TravelMate AI <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'TravelMate AI <noreply@travelmate.local>'
 )
 
-SITE_URL = os.environ.get('SITE_URL', '')
+SITE_URL = os.environ.get('SITE_URL') or ('https://travelmate-ai-lovat.vercel.app' if IS_VERCEL else 'http://localhost:8000')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
 

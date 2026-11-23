@@ -34,6 +34,8 @@ urlpatterns = [
         template_name='accounts/password_reset_complete.html',
     ), name='password_reset_complete'),
     path('verify-email/<str:token>/', account_views.verify_email, name='verify_email'),
+    path('verify-email/<str:token>', account_views.verify_email),
+    path('verify-email/', account_views.verify_email, name='verify_email_query'),
     path('resend-verification/', account_views.resend_verification, name='resend_verification'),
     path('profile/edit/', account_views.edit_profile, name='edit_profile'),
     path('trips/', include('trips.urls')),

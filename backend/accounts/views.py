@@ -78,39 +78,44 @@ def edit_profile(request):
     return render(request, 'accounts/edit_profile.html', {'form': form, 'profile': profile})
 
 
-def verify_email(request, token):
+def verify_email(request, token=None):
+    if not token:
+        token = request.GET.get('token', '')
+
     data = decode_verification_token(token)
     if not data or not isinstance(data, dict):
         messages.error(
             request,
-            "This verification link is invalid or has expired. Log in and use the Resend button."
+            "This verification link is invalid or has expired. Please log in and use the 'Resend verification email' button."
         )
-        return redirect('login')
+        return redirect('home' if request.user.is_authenticated else 'login')
 
     uid = data.get('uid')
     token_email = (data.get('email') or '').strip().lower()
+    token_username = (data.get('username') or '').strip()
 
-    if not uid or not token_email:
+    if not token_email:
         messages.error(
             request,
-            "This verification link is invalid or has expired. Log in and use the Resend button."
+            "This verification link is invalid. Please request a new verification email."
         )
-        return redirect('login')
+        return redirect('home' if request.user.is_authenticated else 'login')
 
-    try:
-        user = User.objects.get(pk=uid)
-    except User.DoesNotExist:
+    user = None
+    if uid:
+        user = User.objects.filter(pk=uid).first()
+    if not user and token_email:
+        user = User.objects.filter(email__iexact=token_email).first()
+    if not user and token_username:
+        user = User.objects.filter(username__iexact=token_username).first()
+    if not user and request.user.is_authenticated:
+        if request.user.email.strip().lower() == token_email or (token_username and request.user.username == token_username):
+            user = request.user
+
+    if not user:
         messages.error(
             request,
-            "This verification link is invalid or has expired. Log in and use the Resend button."
-        )
-        return redirect('login')
-
-    user_email = (user.email or '').strip().lower()
-    if user_email != token_email:
-        messages.error(
-            request,
-            "This verification link is invalid or has expired. Log in and use the Resend button."
+            "Account not found for this verification link. Please log in and request a new verification link."
         )
         return redirect('login')
 
@@ -118,7 +123,7 @@ def verify_email(request, token):
     profile.email_verified = True
     profile.save(update_fields=['email_verified'])
 
-    messages.success(request, "Your email is verified.")
+    messages.success(request, f"Email {user.email} verified successfully! You can now create and join trips.")
     if request.user.is_authenticated:
         return redirect('home')
     return redirect('login')
