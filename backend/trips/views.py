@@ -167,15 +167,17 @@ def invite_member(request, trip_id):
         invited_by=request.user,
     )
 
+    invite_url = invitation.get_invite_url(request=request)
     try:
         send_invitation_email(invitation, request=request)
-    except Exception:
-        logger.exception('Could not send invitation email')
-        invitation.delete()
-        messages.error(request, 'Could not send the invitation email. Please try again.')
-        return redirect('trip_detail', trip_id=trip.id)
+        if getattr(settings, 'EMAIL_HOST_USER', None):
+            messages.success(request, f'Invitation sent to {invitation.email}! You can also copy the direct link below.')
+        else:
+            messages.info(request, f'Invitation created for {invitation.email}! Copy the direct link below to share with your companion.')
+    except Exception as exc:
+        logger.warning('Could not send invitation email: %s', exc)
+        messages.info(request, f'Invitation created for {invitation.email}! Copy the direct link below to share with your companion.')
 
-    messages.success(request, f'Invitation sent to {invitation.email}.')
     return redirect('trip_detail', trip_id=trip.id)
 
 
@@ -233,6 +235,10 @@ def accept_invitation(request, token):
         })
 
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    if not profile.email_verified:
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+
     if not profile.is_complete():
         messages.warning(request, 'Please complete your profile to join this trip.')
         return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.get_full_path()})}")

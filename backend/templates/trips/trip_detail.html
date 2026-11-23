@@ -179,17 +179,22 @@
         <h3 style="margin-top: 22px; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);">Pending invitations</h3>
         <ul style="list-style: none; padding: 0; margin: 0;">
           {% for invite in pending_invites %}
-            <li style="padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); font-size: 13px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <li style="padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); font-size: 13px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
               <div>
-                <span style="color: var(--text); font-weight: 500;">{{ invite.email }}</span>
+                <span style="color: var(--text); font-weight: 600;">{{ invite.email }}</span>
                 <div style="color: var(--muted); font-size: 11px; margin-top: 2px;">Invited by {{ invite.invited_by.username }}</div>
               </div>
-              {% if is_owner or invite.invited_by_id == request.user.id %}
-                <form method="post" action="{% url 'cancel_invitation' trip.id invite.id %}" style="display:inline; margin: 0;">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-secondary btn-small" style="padding: 4px 10px; font-size: 11px;">Cancel</button>
-                </form>
-              {% endif %}
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-secondary btn-small" style="padding: 5px 12px; font-size: 11px;" onclick="navigator.clipboard.writeText('{{ invite.get_invite_url }}'); const self = this; self.innerText='Copied!'; setTimeout(() => { self.innerText='Copy Link'; }, 2000);">
+                  Copy Link
+                </button>
+                {% if is_owner or invite.invited_by_id == request.user.id %}
+                  <form method="post" action="{% url 'cancel_invitation' trip.id invite.id %}" style="display:inline; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-small" style="padding: 5px 10px; font-size: 11px;">Cancel</button>
+                  </form>
+                {% endif %}
+              </div>
             </li>
           {% endfor %}
         </ul>

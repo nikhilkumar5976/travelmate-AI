@@ -16,7 +16,11 @@ def send_invitation_email(invitation, request=None):
         reject_url = request.build_absolute_uri(reverse('reject_invitation', args=[invitation.token]))
         detail_url = request.build_absolute_uri(reverse('invitation', args=[invitation.token]))
     else:
-        site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url and getattr(settings, 'IS_VERCEL', False):
+            site_url = 'https://travelmate-ai-lovat.vercel.app'
+        if not site_url:
+            site_url = 'https://travelmate-ai-lovat.vercel.app'
         accept_url = f"{site_url}{reverse('accept_invitation', args=[invitation.token])}"
         reject_url = f"{site_url}{reverse('reject_invitation', args=[invitation.token])}"
         detail_url = f"{site_url}{reverse('invitation', args=[invitation.token])}"

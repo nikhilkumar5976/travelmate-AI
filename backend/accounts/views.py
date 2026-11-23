@@ -148,8 +148,7 @@ def resend_verification(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     action = request.POST.get('action') or request.GET.get('action') or 'verify_now'
 
-    # If action is verify_now or user requested verification, immediately verify
-    if action == 'verify_now' or not profile.email_verified:
+    if action == 'verify_now':
         profile.email_verified = True
         profile.save(update_fields=['email_verified'])
         messages.success(request, "Your email has been verified successfully! You can now create trips.")
@@ -157,13 +156,23 @@ def resend_verification(request):
 
     try:
         send_verification_email(request, request.user)
-        messages.success(request, f"Verification email sent to {request.user.email}.")
-    except Exception:
-        logger.exception("Failed to send verification email to %s", request.user.email)
+        if getattr(settings, 'EMAIL_HOST_USER', None):
+            messages.success(request, f"Verification email sent to {request.user.email}! Please check your inbox and spam folder.")
+        else:
+            messages.info(
+                request,
+                f"Verification email generated for {request.user.email}. (Email delivery requires Vercel SMTP setup; your email is now verified!)"
+            )
+            profile.email_verified = True
+            profile.save(update_fields=['email_verified'])
+    except Exception as exc:
+        logger.exception("Failed to send verification email to %s: %s", request.user.email, exc)
         messages.warning(
             request,
-            "Could not dispatch email. Your profile is already verified."
+            "Could not dispatch email. Your account has been verified directly so you are not blocked."
         )
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
 
     return redirect('home')
 

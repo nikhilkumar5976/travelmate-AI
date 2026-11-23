@@ -71,5 +71,16 @@ class Invitation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(null=True, blank=True)
 
+    def get_invite_url(self, request=None):
+        from django.urls import reverse
+        path = reverse('invitation', args=[self.token])
+        if request:
+            return request.build_absolute_uri(path)
+        site_url = getattr(settings, 'SITE_URL', '').strip()
+        if not site_url and getattr(settings, 'IS_VERCEL', False):
+            site_url = 'https://travelmate-ai-lovat.vercel.app'
+        base = site_url.rstrip('/') if site_url else 'https://travelmate-ai-lovat.vercel.app'
+        return f"{base}{path}"
+
     def __str__(self):
         return f'{self.email} -> {self.trip.destination} ({self.status})'
