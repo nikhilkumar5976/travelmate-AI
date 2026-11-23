@@ -1,20 +1,35 @@
-/* Group Chat Live Polling & Interactive Messaging */
+/* Group Chat Live Adaptive Polling & Resilient Messaging */
 (function () {
+  'use strict';
+
   var box = document.getElementById('chatBox');
   var stream = document.getElementById('chatStream');
   var form = document.getElementById('chatForm');
   if (!box || !stream || !form) { return; }
 
   var textarea = form.querySelector('textarea');
+  var submitBtn = document.getElementById('chatSubmit');
   var tripId = box.dataset.tripId;
   var myId = parseInt(box.dataset.userId, 10);
-  var csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
   var statusDot = document.getElementById('chat-status-dot');
   var statusText = document.getElementById('chat-status');
   var emptyNotice = document.getElementById('emptyNotice');
+  var errorBanner = document.getElementById('chatErrorBanner');
 
   var renderedIds = new Set();
   var lastMsgId = 0;
+  var consecutiveErrors = 0;
+  var pollTimeoutId = null;
+  var isPollingActive = true;
+  var isSending = false;
+
+  function getCsrfToken() {
+    var input = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) { return input.value; }
+    // Fallback to cookie
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
 
   // Collect initial rendered message IDs
   stream.querySelectorAll('.msg-bubble[data-msg-id]').forEach(function (el) {
@@ -41,7 +56,26 @@
     }
   }
 
+  function showError(msg) {
+    if (!errorBanner) {
+      errorBanner = document.createElement('div');
+      errorBanner.id = 'chatErrorBanner';
+      errorBanner.style.cssText = 'background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 10px 16px; margin: 0 16px 12px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;';
+      form.parentNode.insertBefore(errorBanner, form);
+    }
+    errorBanner.innerHTML = '<span>' + msg + '</span><button type="button" style="background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px;">&times;</button>';
+    errorBanner.querySelector('button').onclick = hideError;
+    errorBanner.style.display = 'flex';
+  }
+
+  function hideError() {
+    if (errorBanner) {
+      errorBanner.style.display = 'none';
+    }
+  }
+
   function renderMessage(data) {
+    if (!data) { return; }
     if (data.id && renderedIds.has(data.id)) { return; }
     if (data.id) {
       renderedIds.add(data.id);
@@ -90,7 +124,7 @@
 
     var name = document.createElement('strong');
     name.style.fontSize = '13px';
-    name.textContent = isMine ? 'You' : data.sender;
+    name.textContent = isMine ? 'You' : (data.sender || 'Member');
     header.appendChild(name);
 
     var time = document.createElement('small');
@@ -104,86 +138,129 @@
     var body = document.createElement('div');
     body.style.lineHeight = '1.5';
     body.style.whiteSpace = 'pre-wrap';
-    body.textContent = data.text;
+    body.textContent = data.text || '';
     bubble.appendChild(body);
 
     stream.appendChild(bubble);
     scrollDown();
   }
 
-  // Live polling for incoming messages
-  var consecutiveErrors = 0;
+  /* Adaptive Polling loop with backoff and visibility handling */
+  function scheduleNextPoll(delayMs) {
+    if (!isPollingActive) { return; }
+    if (pollTimeoutId) { clearTimeout(pollTimeoutId); }
+    pollTimeoutId = setTimeout(pollNewMessages, delayMs);
+  }
+
   function pollNewMessages() {
+    if (!isPollingActive) { return; }
     var url = '/chat/' + tripId + '/messages/?after=' + lastMsgId;
-    fetch(url)
+
+    fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
       .then(function (res) {
         if (!res.ok) {
-          consecutiveErrors++;
-          if (res.status === 404) {
-            clearInterval(pollInterval);
-            setStatus('Trip not found', '#f87171');
-          }
-          throw new Error('Status ' + res.status);
+          throw new Error('HTTP ' + res.status);
         }
-        consecutiveErrors = 0;
         return res.json();
       })
       .then(function (result) {
-        if (result.messages && result.messages.length > 0) {
+        consecutiveErrors = 0;
+        setStatus('Live', '#4ade80');
+        hideError();
+
+        if (result && Array.isArray(result.messages)) {
           result.messages.forEach(renderMessage);
         }
-        setStatus('Live', '#4ade80');
+
+        // Standard poll interval when healthy
+        scheduleNextPoll(3500);
       })
-      .catch(function () {
-        if (consecutiveErrors < 3) {
+      .catch(function (err) {
+        consecutiveErrors++;
+        // Apply graceful backoff: 3.5s -> 6s -> 10s -> max 15s
+        var nextDelay = Math.min(3500 + (consecutiveErrors * 2500), 15000);
+
+        if (consecutiveErrors >= 3) {
           setStatus('Reconnecting...', '#fbbf24');
-        } else {
-          setStatus('Disconnected', '#f87171');
         }
+
+        scheduleNextPoll(nextDelay);
       });
   }
 
-  var pollInterval = setInterval(pollNewMessages, 3000);
+  // Initial poll start
+  scheduleNextPoll(3500);
 
-  // Asynchronous Send
-  var isSending = false;
+  // Tab visibility changes: pause when hidden, immediately catch up on focus
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      isPollingActive = false;
+      if (pollTimeoutId) { clearTimeout(pollTimeoutId); }
+    } else {
+      isPollingActive = true;
+      consecutiveErrors = 0;
+      pollNewMessages();
+    }
+  });
+
+  /* Asynchronous Send */
   form.addEventListener('submit', function (event) {
+    event.preventDefault();
     if (!textarea) { return; }
+
     var text = textarea.value.trim();
-    if (!text || isSending) {
-      event.preventDefault();
-      return;
+    if (!text || isSending) { return; }
+
+    isSending = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
     }
 
-    event.preventDefault();
-    isSending = true;
-
+    var token = getCsrfToken();
     var formData = new FormData();
     formData.append('text', text);
-    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('csrfmiddlewaretoken', token);
 
     textarea.value = '';
 
-    fetch(window.location.href, {
+    fetch('/chat/' + tripId + '/messages/', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': token,
       },
       body: formData,
     })
       .then(function (res) {
-        if (!res.ok) { throw new Error('Send failed'); }
-        return res.json();
+        return res.json().then(function (data) {
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to deliver message.');
+          }
+          return data;
+        });
       })
       .then(function (data) {
+        hideError();
         renderMessage(data);
       })
       .catch(function (err) {
-        // If AJAX fails, restore text
+        // Restore message on failure and notify user
         textarea.value = text;
+        showError(err.message || 'Could not send message. Please check your connection.');
       })
       .finally(function () {
         isSending = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        }
         textarea.focus();
       });
   });
@@ -193,9 +270,12 @@
     textarea.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        form.requestSubmit();
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else if (submitBtn) {
+          submitBtn.click();
+        }
       }
     });
   }
 })();
-
