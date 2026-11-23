@@ -1,8 +1,33 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UsernameField
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import UploadedFile
 from .models import Profile 
+
+
+class EmailAuthenticationForm(AuthenticationForm):
+    username = UsernameField(
+        label="Email address",
+        widget=forms.EmailInput(attrs={
+            "autofocus": True,
+            "placeholder": "name@example.com",
+            "autocomplete": "email",
+        }),
+    )
+    password = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "autocomplete": "current-password",
+            "placeholder": "••••••••",
+        }),
+    )
+
+    error_messages = {
+        "invalid_login": "Please enter a correct email address and password.",
+        "inactive": "This account is inactive.",
+    }
+
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)

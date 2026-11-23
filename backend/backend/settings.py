@@ -294,6 +294,11 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'landing'
 
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Session configuration:
 # Using cryptographically signed cookies ensures that user sessions persist
 # across serverless container recycles and cold starts on platforms like Vercel.
