@@ -37,6 +37,10 @@ def signup(request):
             except Exception:
                 logger.exception("Failed to send verification email to %s", user.email)
             login(request, user)
+            request.session['persisted_username'] = user.username
+            request.session['persisted_email'] = user.email or ''
+            request.session['persisted_password_hash'] = user.password or ''
+            request.session.modified = True
             return redirect(get_safe_next(request) or 'home')
     else:
         form = SignUpForm()

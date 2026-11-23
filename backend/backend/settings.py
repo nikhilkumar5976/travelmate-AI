@@ -17,9 +17,10 @@ load_dotenv(BASE_DIR / '.env')
 # Core
 # ---------------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-@yt3agemx4a1o&9yq_uu$x$esv8zjv$z8^2^*%r^nxh(it-0)2',
+SECRET_KEY = (
+    os.environ.get('DJANGO_SECRET_KEY')
+    or os.environ.get('SECRET_KEY')
+    or 'django-insecure-@yt3agemx4a1o&9yq_uu$x$esv8zjv$z8^2^*%r^nxh(it-0)2'
 )
 
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
@@ -75,6 +76,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'accounts.middleware.EphemeralUserRestoreMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -259,6 +261,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'landing'
+
+# Session configuration:
+# Using cryptographically signed cookies ensures that user sessions persist
+# across serverless container recycles and cold starts on platforms like Vercel.
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 # ---------------------------------------------------------------------------
