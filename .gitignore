@@ -17,6 +17,7 @@ venv/
 # Databases
 db.sqlite3
 *.sqlite3
+!seed.sqlite3
 !backend/seed.sqlite3
 
 # Media and static assets

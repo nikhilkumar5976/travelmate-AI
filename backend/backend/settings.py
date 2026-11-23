@@ -123,15 +123,47 @@ elif IS_VERCEL:
     # Writable database must reside in /tmp (tempfile.gettempdir()).
     import shutil
     import tempfile
-    tmp_db = Path(tempfile.gettempdir()) / 'db.sqlite3'
-    if not tmp_db.exists():
-        for candidate in [BASE_DIR / 'seed.sqlite3', BASE_DIR / 'db.sqlite3']:
-            if candidate.exists():
+    import sqlite3
+
+    def _is_valid_database(db_path: Path) -> bool:
+        if not db_path.exists() or db_path.stat().st_size < 50000:
+            return False
+        try:
+            with sqlite3.connect(str(db_path), timeout=2) as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user'")
+                return cur.fetchone() is not None
+        except Exception:
+            return False
+
+    tmp_db = Path(tempfile.gettempdir()) / 'travelmate.sqlite3'
+    if not _is_valid_database(tmp_db):
+        candidates = [
+            BASE_DIR / 'seed.sqlite3',
+            BASE_DIR.parent / 'seed.sqlite3',
+            BASE_DIR / 'db.sqlite3',
+            BASE_DIR.parent / 'db.sqlite3',
+            Path('/var/task/backend/seed.sqlite3'),
+            Path('/var/task/seed.sqlite3'),
+            Path('/var/task/backend/db.sqlite3'),
+            Path('/var/task/db.sqlite3'),
+        ]
+        for candidate in candidates:
+            if candidate.exists() and candidate.stat().st_size > 50000:
                 try:
+                    tmp_db.parent.mkdir(parents=True, exist_ok=True)
+                    if tmp_db.exists():
+                        tmp_db.unlink(missing_ok=True)
                     shutil.copy2(candidate, tmp_db)
-                    break
+                    try:
+                        os.chmod(tmp_db, 0o666)
+                    except Exception:
+                        pass
+                    if _is_valid_database(tmp_db):
+                        break
                 except Exception:
                     pass
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
