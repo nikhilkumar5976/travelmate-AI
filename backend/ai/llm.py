@@ -2,21 +2,36 @@ import logging
 from django.conf import settings
 from google import genai
 from google.genai import types
-from google.genai.errors import ClientError, ServerError
 
 logger = logging.getLogger(__name__)
 
-# Fallback models in the Gemini 3 family if primary is rate-limited or unavailable
-FALLBACK_MODELS = ['gemini-3.5-flash', 'gemini-3.6-flash']
+# Fallback models in the Gemini family if primary is rate-limited or unavailable
+FALLBACK_MODELS = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+]
 
 
 def call_llm(prompt, json_output=False):
+    api_key = (
+        getattr(settings, 'LLM_API_KEY', '')
+        or getattr(settings, 'GEMINI_API_KEY', '')
+        or getattr(settings, 'GOOGLE_API_KEY', '')
+    )
+    if not api_key:
+        raise ValueError("No Gemini API key configured. Please set LLM_API_KEY or GEMINI_API_KEY in environment variables.")
+
     client = genai.Client(
-        api_key=settings.LLM_API_KEY,
-        http_options=types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=1)),
+        api_key=api_key,
+        http_options=types.HttpOptions(
+            timeout=15.0,
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
     )
     config = types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_level='low'),
         response_mime_type='application/json' if json_output else None,
     )
 
@@ -34,8 +49,9 @@ def call_llm(prompt, json_output=False):
                 contents=prompt,
                 config=config,
             )
-            return response.text
-        except (ClientError, ServerError) as error:
+            if response and response.text:
+                return response.text
+        except Exception as error:
             logger.warning(
                 "Model %s failed (%s). Attempting next available model...",
                 model,
@@ -46,4 +62,3 @@ def call_llm(prompt, json_output=False):
 
     if last_error:
         raise last_error
-

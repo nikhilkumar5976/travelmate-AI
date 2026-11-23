@@ -265,7 +265,13 @@ LOGOUT_REDIRECT_URL = 'landing'
 # AI (Gemini)
 # ---------------------------------------------------------------------------
 
-LLM_API_KEY = os.environ.get('LLM_API_KEY', '')
+LLM_API_KEY = (
+    os.environ.get('LLM_API_KEY')
+    or os.environ.get('GEMINI_API_KEY')
+    or os.environ.get('GOOGLE_API_KEY')
+    or os.environ.get('GOOGLE_GENAI_API_KEY')
+    or ''
+)
 LLM_MODEL = os.environ.get('LLM_MODEL', 'gemini-3.8-flash')
 TRIP_CURRENCY = 'INR'
 
