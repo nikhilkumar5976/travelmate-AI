@@ -28,6 +28,13 @@ class EmailAuthenticationForm(AuthenticationForm):
         "inactive": "This account is inactive.",
     }
 
+    def __init__(self, request=None, *args, **kwargs):
+        super().__init__(request, *args, **kwargs)
+        if request and request.method == 'GET':
+            email = request.GET.get('email')
+            if email and not self.initial.get('username'):
+                self.initial['username'] = email.strip()
+
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -52,14 +59,9 @@ class EditProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['phone'].required = True
+        self.fields['photo'].required = False
         if self.instance and self.instance.pk and hasattr(self.instance, 'user'):
             self.fields['email'].initial = self.instance.user.email
-            if self.instance.photo:
-                self.fields['photo'].required = False
-            else:
-                self.fields['photo'].required = True
-        else:
-            self.fields['photo'].required = True
 
     def clean_email(self):
         email = self.cleaned_data['email'].lower()
@@ -79,7 +81,7 @@ class EditProfileForm(forms.ModelForm):
 
     def clean_photo(self):
         photo = self.cleaned_data.get('photo')
-        if isinstance(photo, UploadedFile) and photo.size > 2 * 1024 * 1024:
+        if photo and isinstance(photo, UploadedFile) and photo.size > 2 * 1024 * 1024:
             raise forms.ValidationError('Photo size should not exceed 2MB.')
         return photo
 

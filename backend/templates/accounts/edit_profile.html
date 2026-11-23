@@ -23,6 +23,9 @@
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {% if next or request.GET.next or request.POST.next %}
+      <input type="hidden" name="next" value="{{ next|default:request.POST.next|default:request.GET.next }}">
+    {% endif %}
     {{ form.as_p }}
     <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px; flex-wrap: wrap;">
       <button type="submit" class="btn">Save profile &rarr;</button>

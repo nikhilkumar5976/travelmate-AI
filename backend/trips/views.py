@@ -193,13 +193,18 @@ def cancel_invitation(request, trip_id, invitation_id):
     return redirect('trip_detail', trip_id=trip.id)
 
 def accept_invitation(request, token):
-    invitation = get_object_or_404(
-        Invitation.objects.select_related('trip', 'invited_by'),
-        token=token,
-    )
+    invitation = Invitation.objects.filter(token=token).select_related('trip', 'invited_by').first()
+    if not invitation:
+        messages.error(request, 'This invitation link is invalid or has expired.')
+        return redirect('home' if request.user.is_authenticated else 'login')
 
     if invitation.status == 'accepted':
-        messages.info(request, 'This invitation has already been accepted.')
+        if request.user.is_authenticated and TripMember.objects.filter(trip=invitation.trip, user=request.user).exists():
+            messages.info(request, f'You are already a member of the trip to {invitation.trip.destination}.')
+            return redirect('trip_detail', trip_id=invitation.trip.id)
+        if not request.user.is_authenticated:
+            messages.info(request, 'This invitation has already been accepted. Please log in to view the trip.')
+            return redirect(f"{reverse('login')}?{urlencode({'next': reverse('trip_detail', args=[invitation.trip.id]), 'email': invitation.email})}")
         return render(request, 'trips/invitation_response.html', {
             'state': 'accepted',
             'invitation': invitation,
@@ -217,8 +222,14 @@ def accept_invitation(request, token):
         })
 
     if not request.user.is_authenticated:
-        messages.info(request, f'Please log in or sign up with {invitation.email} to accept this invitation.')
-        return redirect(f"{reverse('login')}?{urlencode({'next': request.get_full_path()})}")
+        from django.contrib.auth.models import User
+        existing_user = User.objects.filter(email__iexact=invitation.email).first()
+        if existing_user:
+            messages.info(request, f'Please log in with {invitation.email} to accept your trip invitation.')
+            return redirect(f"{reverse('login')}?{urlencode({'next': request.get_full_path(), 'email': invitation.email})}")
+        else:
+            messages.info(request, f'You are invited to join the trip to {invitation.trip.destination}! Create an account to join.')
+            return redirect(f"{reverse('signup')}?{urlencode({'next': request.get_full_path(), 'email': invitation.email})}")
 
     if (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
         messages.error(
@@ -237,7 +248,7 @@ def accept_invitation(request, token):
         profile.save(update_fields=['email_verified'])
 
     if not profile.is_complete():
-        messages.warning(request, 'Please complete your profile to join this trip.')
+        messages.warning(request, 'Please complete your profile (add your phone number) to join this trip.')
         return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.get_full_path()})}")
 
     with transaction.atomic():
@@ -249,12 +260,7 @@ def accept_invitation(request, token):
         invitation.save(update_fields=['status', 'responded_at'])
 
     messages.success(request, f'You successfully joined the trip to {invitation.trip.destination}!')
-    return render(request, 'trips/invitation_response.html', {
-        'state': 'accepted',
-        'invitation': invitation,
-        'trip': invitation.trip,
-        'message': f'You successfully accepted the invitation! Welcome to the trip to {invitation.trip.destination}.',
-    })
+    return redirect('trip_detail', trip_id=invitation.trip.id)
 
 
 def reject_invitation(request, token):
@@ -294,28 +300,56 @@ def reject_invitation(request, token):
     })
 
 def invitation_detail(request, token):
-    invitation = get_object_or_404(
-        Invitation.objects.select_related('trip', 'invited_by'),
-        token=token,
-    )
-    context = {'invitation': invitation, 'trip': invitation.trip}
+    invitation = Invitation.objects.filter(token=token).select_related('trip', 'invited_by').first()
+    if not invitation:
+        messages.error(request, 'This invitation link is invalid or has expired.')
+        return redirect('home' if request.user.is_authenticated else 'login')
 
-    if invitation.status != 'pending':
-        context['state'] = 'closed'
-    elif not request.user.is_authenticated:
-        context['state'] = 'anonymous'
-    elif (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
-        context['state'] = 'wrong_account'
-    else:
-        profile, _ = Profile.objects.get_or_create(user=request.user)
-        if not profile.is_complete():
-            messages.error(request, 'Complete your profile to join this trip.')
-            return redirect(f"{reverse('edit_profile')}?{urlencode({'next': request.path})}")
-        if not profile.email_verified:
-            profile.email_verified = True
-            profile.save(update_fields=['email_verified'])
-        context['state'] = 'ready'
-    return render(request, 'trips/invitation.html', context)
+    if invitation.status == 'accepted':
+        if request.user.is_authenticated and TripMember.objects.filter(trip=invitation.trip, user=request.user).exists():
+            messages.info(request, f'You are already a member of the trip to {invitation.trip.destination}.')
+            return redirect('trip_detail', trip_id=invitation.trip.id)
+        if not request.user.is_authenticated:
+            messages.info(request, 'This invitation has already been accepted. Please log in to view the trip.')
+            return redirect(f"{reverse('login')}?{urlencode({'next': reverse('trip_detail', args=[invitation.trip.id]), 'email': invitation.email})}")
+
+    if not request.user.is_authenticated:
+        from django.contrib.auth.models import User
+        existing_user = User.objects.filter(email__iexact=invitation.email).first()
+        if existing_user:
+            messages.info(request, f'Please log in with {invitation.email} to accept your trip invitation.')
+            return redirect(f"{reverse('login')}?{urlencode({'next': reverse('accept_invitation', args=[token]), 'email': invitation.email})}")
+        else:
+            messages.info(request, f'You are invited to join the trip to {invitation.trip.destination}! Create an account to join.')
+            return redirect(f"{reverse('signup')}?{urlencode({'next': reverse('accept_invitation', args=[token]), 'email': invitation.email})}")
+
+    if (request.user.email or '').strip().lower() != (invitation.email or '').strip().lower():
+        return render(request, 'trips/invitation.html', {
+            'invitation': invitation,
+            'trip': invitation.trip,
+            'state': 'wrong_account',
+        })
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if not profile.email_verified:
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+
+    if not profile.is_complete():
+        messages.warning(request, 'Please complete your profile to join this trip.')
+        return redirect(f"{reverse('edit_profile')}?{urlencode({'next': reverse('accept_invitation', args=[token])})}")
+
+    # If profile is complete, join and redirect straight to trip!
+    with transaction.atomic():
+        TripMember.objects.get_or_create(
+            trip=invitation.trip, user=request.user, defaults={'role': 'member'}
+        )
+        invitation.status = 'accepted'
+        invitation.responded_at = timezone.now()
+        invitation.save(update_fields=['status', 'responded_at'])
+
+    messages.success(request, f'You joined the trip to {invitation.trip.destination}!')
+    return redirect('trip_detail', trip_id=invitation.trip.id)
 
 
 @login_required

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_safe_next(request):
-    next_url = request.GET.get('next', '')
+    next_url = (request.POST.get('next') or request.GET.get('next') or '').strip()
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         return next_url
     return None
@@ -27,24 +27,35 @@ def get_safe_next(request):
 def signup(request):
     if request.user.is_authenticated:
         return redirect(get_safe_next(request) or 'home')
+    initial_email = (request.GET.get('email') or '').strip()
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.create(user=user, email_verified=True)
+            profile = Profile.objects.create(user=user, email_verified=True)
             try:
                 send_verification_email(request, user)
             except Exception:
                 logger.exception("Failed to send verification email to %s", user.email)
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
             request.session['persisted_username'] = user.username
             request.session['persisted_email'] = user.email or ''
             request.session['persisted_password_hash'] = user.password or ''
             request.session.modified = True
-            return redirect(get_safe_next(request) or 'home')
+
+            next_url = get_safe_next(request)
+            if next_url and 'invitations' in next_url:
+                if not profile.is_complete():
+                    from django.urls import reverse
+                    from urllib.parse import urlencode
+                    messages.info(request, "Account created! Please add your phone number to complete your profile and join the trip.")
+                    return redirect(f"{reverse('edit_profile')}?{urlencode({'next': next_url})}")
+                return redirect(next_url)
+
+            return redirect(next_url or 'home')
     else:
-        form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+        form = SignUpForm(initial={'email': initial_email} if initial_email else None)
+    return render(request, 'accounts/signup.html', {'form': form, 'next': request.GET.get('next', '')})
 
 
 @login_required
@@ -72,10 +83,17 @@ def edit_profile(request):
                         request,
                         "We could not send the verification email. Use the Resend button on your home page."
                     )
-            return redirect(get_safe_next(request) or 'edit_profile')
+            next_url = get_safe_next(request)
+            if next_url:
+                return redirect(next_url)
+            return redirect('home')
     else:
         form = EditProfileForm(instance=profile)
-    return render(request, 'accounts/edit_profile.html', {'form': form, 'profile': profile})
+    return render(request, 'accounts/edit_profile.html', {
+        'form': form,
+        'profile': profile,
+        'next': request.GET.get('next', ''),
+    })
 
 
 def verify_email(request, token=None):
@@ -125,7 +143,7 @@ def verify_email(request, token=None):
 
     # Log in user immediately if not authenticated so they don't have to log in again
     if not request.user.is_authenticated:
-        login(request, user)
+        login(request, user, backend='accounts.backends.EmailOrUsernameModelBackend')
 
     messages.success(request, f"Email {user.email} verified successfully! You can now create and join trips.")
     return redirect('home')

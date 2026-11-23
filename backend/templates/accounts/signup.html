@@ -15,6 +15,9 @@
 
   <form method="post">
     {% csrf_token %}
+    {% if next or request.GET.next or request.POST.next %}
+      <input type="hidden" name="next" value="{{ next|default:request.POST.next|default:request.GET.next }}">
+    {% endif %}
     {{ form.as_p }}
     <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 13px 24px; font-size: 15px;">
       Sign up &rarr;
