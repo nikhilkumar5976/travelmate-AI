@@ -42,7 +42,16 @@ urlpatterns = [
     path('ai/', include('ai.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+def serve_media(request, path):
+    try:
+        return serve(request, path, document_root=settings.MEDIA_ROOT)
+    except Exception:
+        repo_media = settings.BASE_DIR / 'media'
+        if repo_media.exists():
+            return serve(request, path, document_root=repo_media)
+        raise
+
 urlpatterns += [
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    re_path(r'^media/(?P<path>.*)$', serve_media),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATICFILES_DIRS[0]}),
 ]

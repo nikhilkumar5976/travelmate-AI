@@ -226,7 +226,28 @@ STORAGES = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if IS_VERCEL:
+    import tempfile
+    import shutil
+    MEDIA_ROOT = Path(tempfile.gettempdir()) / 'media'
+    try:
+        MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        seed_media = BASE_DIR / 'media'
+        if seed_media.exists():
+            for item in seed_media.rglob('*'):
+                if item.is_file():
+                    rel = item.relative_to(seed_media)
+                    target = MEDIA_ROOT / rel
+                    if not target.exists():
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        try:
+                            shutil.copy2(item, target)
+                        except Exception:
+                            pass
+    except Exception:
+        pass
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
