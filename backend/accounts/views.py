@@ -55,7 +55,10 @@ def signup(request):
             return redirect(next_url or 'home')
     else:
         form = SignUpForm(initial={'email': initial_email} if initial_email else None)
-    return render(request, 'accounts/signup.html', {'form': form, 'next': request.GET.get('next', '')})
+    return render(request, 'accounts/signup.html', {
+        'form': form,
+        'next': get_safe_next(request) or '',
+    })
 
 
 @login_required
@@ -92,7 +95,7 @@ def edit_profile(request):
     return render(request, 'accounts/edit_profile.html', {
         'form': form,
         'profile': profile,
-        'next': request.GET.get('next', ''),
+        'next': get_safe_next(request) or '',
     })
 
 

@@ -15,8 +15,8 @@
 
   <form method="post">
     {% csrf_token %}
-    {% if next or request.GET.next or request.POST.next %}
-      <input type="hidden" name="next" value="{{ next|default:request.POST.next|default:request.GET.next }}">
+    {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
     {% endif %}
     {{ form.as_p }}
     <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 13px 24px; font-size: 15px;">
@@ -26,7 +26,7 @@
 
   <p style="text-align: center; margin-top: 28px; margin-bottom: 0; font-size: 14px;">
     Already have an account?
-    <a href="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600; text-decoration: underline;">
+    <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600; text-decoration: underline;">
       Log in
     </a>
   </p>

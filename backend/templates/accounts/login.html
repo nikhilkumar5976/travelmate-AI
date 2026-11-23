@@ -15,8 +15,8 @@
 
   <form method="post">
     {% csrf_token %}
-    {% if request.GET.next or request.POST.next %}
-      <input type="hidden" name="next" value="{{ request.POST.next|default:request.GET.next }}">
+    {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
     {% endif %}
     {{ form.as_p }}
     <div style="text-align: right; margin-top: -4px; margin-bottom: 14px;">
@@ -29,7 +29,7 @@
 
   <p style="text-align: center; margin-top: 28px; margin-bottom: 0; font-size: 14px;">
     New to TravelMate?
-    <a href="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600; text-decoration: underline;">
+    <a href="{% url 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}" style="color: var(--sky); font-weight: 600; text-decoration: underline;">
       Create an account
     </a>
   </p>
