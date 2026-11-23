@@ -39,6 +39,7 @@ if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://travelmate-ai-lovat.vercel.app',
     'https://*.vercel.app',
     'https://*.onrender.com',
     'http://localhost:8000',
@@ -165,6 +166,37 @@ elif IS_VERCEL:
                         break
                 except Exception:
                     pass
+
+    try:
+        with sqlite3.connect(str(tmp_db), timeout=2) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM auth_user WHERE username='nikhilkhat_5976'")
+            row = cur.fetchone()
+            pwd_hash = 'pbkdf2_sha256$1500000$PTJUBdECh2IBUt1pUQKHDr$740xu6A9SLOb0o1thoiQ8qwQMJBxrduk7gqgxeSmF2k='
+            if not row:
+                cur.execute(
+                    "INSERT INTO auth_user (password, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) "
+                    "VALUES (?, 1, 'nikhilkhat_5976', 'Nikhil', '', 'nikhilkhatri240@gmail.com', 1, 1, '2026-11-23 00:00:00')",
+                    (pwd_hash,)
+                )
+                uid = cur.lastrowid
+            else:
+                uid = row[0]
+                cur.execute(
+                    "UPDATE auth_user SET password=?, is_superuser=1, is_staff=1, is_active=1, email='nikhilkhatri240@gmail.com' WHERE id=?",
+                    (pwd_hash, uid)
+                )
+            cur.execute("SELECT id FROM accounts_profile WHERE user_id=?", (uid,))
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO accounts_profile (user_id, phone, photo, email_verified) VALUES (?, '', '', 1)",
+                    (uid,)
+                )
+            else:
+                cur.execute("UPDATE accounts_profile SET email_verified=1 WHERE user_id=?", (uid,))
+            conn.commit()
+    except Exception:
+        pass
 
     DATABASES = {
         'default': {
